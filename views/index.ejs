@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">Приложение для запоминания текстов</a>
+            </h1>
+            <nav class="nav" id="navigation">
+                <a href="/" class="nav-link active">Главная</a>
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="nav-link" id="loginLink">Войти</a>
+                    <a href="#" class="nav-link" id="registerLink">Регистрация</a>
+                </div>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <a href="#" class="nav-link" id="textsLink">Мои тексты</a>
+                    <a href="#" class="nav-link" id="trainingLink">Тренировка</a>
+                    <span class="username" id="username"></span>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Экран авторизации -->
+            <div class="auth-screen" id="authScreen">
+                <div class="welcome-section">
+                    <h2>Добро пожаловать!</h2>
+                    <p>Приложение поможет вам запомнить тексты презентаций, используя метод дворца памяти.</p>
+                    <p>Привязывайте виртуальные образы к знакомому маршруту и тренируйте переходы между фразами.</p>
+                </div>
+
+                <!-- Форма входа -->
+                <div class="auth-form" id="loginForm">
+                    <h3>Вход в систему</h3>
+                    <form id="loginFormElement">
+                        <div class="form-group">
+                            <label for="loginEmail">Email:</label>
+                            <input type="email" id="loginEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль:</label>
+                            <input type="password" id="loginPassword" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                        <p class="form-switch">
+                            Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a>
+                        </p>
+                    </form>
+                </div>
+
+                <!-- Форма регистрации -->
+                <div class="auth-form" id="registerForm" style="display: none;">
+                    <h3>Регистрация</h3>
+                    <form id="registerFormElement">
+                        <div class="form-group">
+                            <label for="registerUsername">Имя пользователя:</label>
+                            <input type="text" id="registerUsername" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerEmail">Email:</label>
+                            <input type="email" id="registerEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Пароль:</label>
+                            <input type="password" id="registerPassword" name="password" required>
+                            <small>Минимум 6 символов</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+                        <p class="form-switch">
+                            Уже есть аккаунт? <a href="#" id="showLogin">Войти</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Главное меню (показывается после авторизации) -->
+            <div class="main-menu" id="mainMenu" style="display: none;">
+                <div class="menu-section">
+                    <h2>Что вы хотите сделать?</h2>
+                    
+                    <div class="menu-options">
+                        <div class="menu-option" id="uploadTextOption">
+                            <i class="fas fa-upload"></i>
+                            <h3>Загрузить новый текст</h3>
+                            <p>Добавьте текст, который хотите запомнить</p>
+                        </div>
+                        
+                        <div class="menu-option" id="selectTextOption">
+                            <i class="fas fa-list"></i>
+                            <h3>Выбрать текст</h3>
+                            <p>Работайте с уже загруженными текстами</p>
+                        </div>
+                        
+                        <div class="menu-option" id="trainingOption">
+                            <i class="fas fa-brain"></i>
+                            <h3>Тренировка</h3>
+                            <p>Тренируйте запоминание готовых текстов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма загрузки текста -->
+            <div class="upload-form" id="uploadForm" style="display: none;">
+                <h2>Загрузка нового текста</h2>
+                <form id="textUploadForm">
+                    <div class="form-group">
+                        <label for="textTitle">Название текста:</label>
+                        <input type="text" id="textTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="textLanguage">Язык текста:</label>
+                        <select id="textLanguage" name="language">
+                            <option value="ru">Русский</option>
+                            <option value="en">English</option>
+                            <option value="de">Deutsch</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="textContent">Содержимое текста:</label>
+                        <textarea id="textContent" name="content" rows="10" required 
+                                  placeholder="Вставьте или введите текст, который хотите запомнить..."></textarea>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">Загрузить и перейти к мастеру</button>
+                        <button type="button" class="btn btn-secondary" id="cancelUpload">Отмена</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Список текстов -->
+            <div class="texts-list" id="textsList" style="display: none;">
+                <h2>Ваши тексты</h2>
+                <div class="texts-container" id="textsContainer">
+                    <!-- Тексты будут загружены динамически -->
+                </div>
+                <button class="btn btn-secondary" id="backToMenu">Назад в меню</button>
+            </div>
+
+            <!-- Список текстов для тренировки -->
+            <div class="training-list" id="trainingList" style="display: none;">
+                <h2>Тренировка текстов</h2>
+                <p>Выберите текст для тренировки запоминания:</p>
+                <div class="training-texts-container" id="trainingTextsContainer">
+                    <!-- Готовые для тренировки тексты будут загружены динамически -->
+                </div>
+                <button class="btn btn-secondary" id="backToMenuFromTraining">Назад в меню</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>

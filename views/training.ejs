@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренировка - <%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">Тренировка запоминания</a>
+            </h1>
+            <nav class="nav">
+                <a href="/" class="nav-link">Главная</a>
+                <button class="nav-btn" id="selectTextBtn">Выбрать текст</button>
+                <button class="nav-btn" id="wizardBtn" style="display: none;">Мастер</button>
+                <div class="user-menu" id="userMenu">
+                    <span class="username" id="username"></span>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Цепочка рассказа -->
+        <div class="story-chain" id="storyChain" style="display: none;">
+            <div class="container">
+                <div class="chain-line" id="chainLine">
+                    <!-- Смайлики будут добавляться динамически -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Список доступных текстов -->
+            <div class="text-selection" id="textSelection">
+                <h2>Выберите текст для тренировки</h2>
+                <div class="training-texts" id="trainingTexts">
+                    <!-- Тексты будут загружены динамически -->
+                </div>
+            </div>
+
+            <!-- Режим тренировки -->
+            <div class="training-mode" id="trainingMode" style="display: none;">
+                <div class="training-header">
+                    <h2 id="textTitle">Название текста</h2>
+                    <div class="training-controls">
+                        <div class="visibility-controls">
+                            <button class="control-btn" id="toggleText">
+                                <i class="fas fa-eye"></i>
+                                <span>Скрыть текст</span>
+                            </button>
+                            <button class="control-btn" id="toggleEmojis">
+                                <i class="fas fa-smile"></i>
+                                <span>Скрыть смайлики</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="training-content">
+                    <!-- Текущий фрагмент -->
+                    <div class="current-fragment">
+                        <div class="fragment-number">
+                            Фрагмент <span id="currentNumber">1</span> из <span id="totalNumber">0</span>
+                        </div>
+                        
+                        <div class="fragment-display">
+                            <div class="fragment-text" id="fragmentText">
+                                <!-- Текст фрагмента -->
+                            </div>
+                            
+                            <div class="fragment-association" id="fragmentAssociation">
+                                <!-- Смайлик или ассоциация -->
+                            </div>
+                        </div>
+                        
+                        <!-- Следующий смайлик (подсказка) -->
+                        <div class="next-hint" id="nextHint">
+                            <span class="hint-label">Следующий:</span>
+                            <div class="next-association" id="nextAssociation">
+                                <!-- Смайлик следующего фрагмента -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Навигация -->
+                    <div class="navigation-controls">
+                        <button class="nav-btn" id="prevBtn" disabled>
+                            <i class="fas fa-arrow-left"></i>
+                            Назад
+                        </button>
+                        
+                        <div class="fragment-indicator" id="fragmentIndicator">
+                            <!-- Индикатор прогресса -->
+                        </div>
+                        
+                        <button class="nav-btn" id="nextBtn">
+                            Далее
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        
+                        <button class="nav-btn" id="restartBtn" style="display: none;">
+                            <i class="fas fa-redo"></i>
+                            В начало
+                        </button>
+                    </div>
+
+                    <!-- Конец тренировки -->
+                    <div class="training-complete" id="trainingComplete" style="display: none;">
+                        <div class="complete-message">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Конец</h3>
+                            <p>Вы прошли все фрагменты текста!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/training.js"></script>
+</body>
+</html>

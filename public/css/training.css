@@ -1,0 +1,542 @@
+/* Стили для режима тренировки */
+
+/* Выбор текста */
+.text-selection {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.text-selection h2 {
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.training-texts {
+    display: grid;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.training-text-item {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.training-text-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.15);
+}
+
+.training-text-item h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.training-text-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.training-text-stats {
+    display: flex;
+    gap: 2rem;
+    color: #667eea;
+    font-weight: 500;
+}
+
+.training-text-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.training-text-stats i {
+    font-size: 1.1rem;
+}
+
+/* Режим тренировки */
+.training-mode {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.training-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.training-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.training-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.visibility-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.control-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.control-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.control-btn.active {
+    background: #28a745;
+}
+
+.control-btn i {
+    font-size: 1.1rem;
+}
+
+/* Содержимое тренировки */
+.training-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.current-fragment {
+    padding: 3rem 2rem;
+    text-align: center;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.fragment-number {
+    background: #667eea;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.fragment-display {
+    margin-bottom: 3rem;
+}
+
+#fragmentText {
+    font-size: 1.5rem;
+    line-height: 1.6;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fragmentText.hidden {
+    color: transparent;
+    background: #f8f9fa;
+    border-radius: 8px;
+    position: relative;
+}
+
+#fragmentText.hidden::after {
+    content: 'Текст скрыт';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6c757d;
+    font-size: 1rem;
+    font-style: italic;
+}
+
+#fragmentAssociation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+}
+
+.association-emoji {
+    font-size: 4rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 1rem;
+    border-radius: 50%;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.association-emoji:hover {
+    transform: scale(1.1);
+    background: rgba(102, 126, 234, 0.2);
+}
+
+.association-emoji.hidden {
+    opacity: 0;
+}
+
+.association-image {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.association-image:hover {
+    transform: scale(1.05);
+}
+
+.association-image.hidden {
+    opacity: 0;
+}
+
+.association-word {
+    font-size: 2rem;
+    color: #667eea;
+    font-weight: bold;
+    padding: 1rem 2rem;
+    border: 3px solid #667eea;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.association-word:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+.association-word.hidden {
+    opacity: 0;
+}
+
+.number-only {
+    font-size: 3rem;
+    color: #667eea;
+    font-weight: bold;
+    border: 3px solid #667eea;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Подсказка следующего */
+.next-hint {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+}
+
+.hint-label {
+    color: #667eea;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+#nextAssociation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.next-association-emoji {
+    font-size: 2rem;
+    opacity: 0.7;
+}
+
+.next-association-image {
+    max-width: 60px;
+    max-height: 60px;
+    border-radius: 6px;
+    opacity: 0.7;
+}
+
+.next-association-word {
+    font-size: 1.2rem;
+    color: #667eea;
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+/* Навигация */
+.navigation-controls {
+    padding: 2rem;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.nav-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.nav-btn:hover:not(:disabled) {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.nav-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.6;
+}
+
+.nav-btn i {
+    font-size: 1.1rem;
+}
+
+/* Индикатор фрагментов */
+.fragment-indicator {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.fragment-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.fragment-dot.active {
+    background: #667eea;
+    transform: scale(1.3);
+}
+
+.fragment-dot.completed {
+    background: #28a745;
+}
+
+/* Завершение тренировки */
+.training-complete {
+    padding: 4rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.complete-message i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #28a745;
+    background: white;
+    border-radius: 50%;
+    padding: 1rem;
+    width: 6rem;
+    height: 6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.complete-message h3 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.complete-message p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Адаптивность для тренировки */
+@media (max-width: 768px) {
+    .training-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .training-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .visibility-controls {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .current-fragment {
+        padding: 2rem 1rem;
+        min-height: 300px;
+    }
+    
+    #fragmentText {
+        font-size: 1.2rem;
+    }
+    
+    .association-emoji {
+        font-size: 3rem;
+    }
+    
+    .association-word {
+        font-size: 1.5rem;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .navigation-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .fragment-indicator {
+        order: -1;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .training-text-meta {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .training-text-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .complete-message i {
+        font-size: 3rem;
+        width: 5rem;
+        height: 5rem;
+    }
+    
+    .complete-message h3 {
+        font-size: 2rem;
+    }
+    
+    .complete-message p {
+        font-size: 1rem;
+    }
+}
+
+/* Анимации для тренировки */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.5s ease-out;
+}
+
+.slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.bounce {
+    animation: bounce 1s;
+}

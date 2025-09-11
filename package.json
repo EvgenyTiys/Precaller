@@ -1,0 +1,37 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "Программа для запоминания текстов презентаций. Мы часто забываем переходы между фразами когда репетируем презентацию. Для того, чтобы сосредоточится именно на вспоминании переходов и тренировки именно этого этапа без затрат сил на отвлекающие факторы используется мнемотехника, основанная на дворце памяти, а именно привязывание вирутуальных образов к маршруту. Программа направляет и облегчает следование по маршруту. Остаётся лишь потратить силы на запоминания переходов не отвлекаясь на мелочи.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvgenyTiys/Precaller.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EvgenyTiys/Precaller/issues"
+  },
+  "homepage": "https://github.com/EvgenyTiys/Precaller#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

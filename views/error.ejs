@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">Приложение для запоминания текстов</a>
+            </h1>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="error-page">
+                <div class="error-content">
+                    <h2>Ошибка</h2>
+                    <p><%= error %></p>
+                    <a href="/" class="btn btn-primary">Вернуться на главную</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+nohup: ignoring input
+[dotenv@17.2.2] injecting env (3) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+Сервер запущен на порту 3000
+Подключение к SQLite базе данных установлено
+2025-09-11T18:38:57.730Z - GET /
+2025-09-11T18:39:04.243Z - POST /api/auth/register
