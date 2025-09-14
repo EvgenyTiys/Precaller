@@ -177,6 +177,7 @@ function initializeEventListeners() {
     }
 }
 
+
 // Выход из системы
 function logout() {
     // Очищаем локальные данные
@@ -223,6 +224,12 @@ async function apiRequest(url, options = {}) {
         const data = await response.json();
         
         if (!response.ok) {
+            // Если токен истек, выходим из системы
+            if (response.status === 403 && data.error === 'Недействительный токен') {
+                console.log('Token expired, logging out...');
+                logout();
+                throw new Error('Сессия истекла. Пожалуйста, войдите в систему заново.');
+            }
             throw new Error(data.error || 'Ошибка сервера');
         }
         

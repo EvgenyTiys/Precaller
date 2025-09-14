@@ -206,30 +206,19 @@ function showStep(stepNumber) {
 
 // Обработка сохранения маршрута (Шаг 1)
 async function handleSaveRoute() {
-    const routeDescription = document.getElementById('routeDescription').value.trim();
-    
-    if (!routeDescription) {
-        window.app.showNotification('Опишите ваш маршрут', 'error');
-        return;
-    }
-    
-    if (routeDescription.length < 50) {
-        window.app.showNotification('Описание маршрута должно быть более подробным (минимум 50 символов)', 'error');
-        return;
-    }
-    
     try {
         window.app.showLoader();
         
+        // Создаем пустое описание маршрута, так как пользователь представляет его в голове
         await window.app.apiRequest('/api/wizard/route', {
             method: 'POST',
             body: JSON.stringify({
                 textId: currentTextId,
-                routeDescription: routeDescription
+                routeDescription: 'Маршрут представлен в голове пользователя'
             })
         });
         
-        window.app.showNotification('Маршрут сохранен!', 'success');
+        window.app.showNotification('Переходим к разбиению на фрагменты!', 'success');
         showStep(2);
         
     } catch (error) {

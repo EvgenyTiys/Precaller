@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -16,8 +17,7 @@
             <nav class="nav" id="navigation">
                 <a href="/" class="nav-link active">Главная</a>
                 <div class="auth-buttons" id="authButtons">
-                    <a href="#" class="nav-link" id="loginLink">Войти</a>
-                    <a href="#" class="nav-link" id="registerLink">Регистрация</a>
+                    <a href="/auth" class="nav-link">Войти</a>
                 </div>
                 <div class="user-menu" id="userMenu" style="display: none;">
                     <a href="#" class="nav-link" id="textsLink">Мои тексты</a>
@@ -31,55 +31,18 @@
 
     <main class="main">
         <div class="container">
-            <!-- Экран авторизации -->
-            <div class="auth-screen" id="authScreen">
+            <!-- Приветственный экран -->
+            <div class="welcome-screen" id="welcomeScreen">
                 <div class="welcome-section">
                     <h2>Добро пожаловать!</h2>
                     <p>Приложение поможет вам запомнить тексты презентаций, используя метод дворца памяти.</p>
                     <p>Привязывайте виртуальные образы к знакомому маршруту и тренируйте переходы между фразами.</p>
-                </div>
-
-                <!-- Форма входа -->
-                <div class="auth-form" id="loginForm">
-                    <h3>Вход в систему</h3>
-                    <form id="loginFormElement">
-                        <div class="form-group">
-                            <label for="loginEmail">Email:</label>
-                            <input type="email" id="loginEmail" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="loginPassword">Пароль:</label>
-                            <input type="password" id="loginPassword" name="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Войти</button>
-                        <p class="form-switch">
-                            Нет аккаунта? <a href="#" id="showRegister">Зарегистрироваться</a>
-                        </p>
-                    </form>
-                </div>
-
-                <!-- Форма регистрации -->
-                <div class="auth-form" id="registerForm" style="display: none;">
-                    <h3>Регистрация</h3>
-                    <form id="registerFormElement">
-                        <div class="form-group">
-                            <label for="registerUsername">Имя пользователя:</label>
-                            <input type="text" id="registerUsername" name="username" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerEmail">Email:</label>
-                            <input type="email" id="registerEmail" name="email" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerPassword">Пароль:</label>
-                            <input type="password" id="registerPassword" name="password" required>
-                            <small>Минимум 6 символов</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
-                        <p class="form-switch">
-                            Уже есть аккаунт? <a href="#" id="showLogin">Войти</a>
-                        </p>
-                    </form>
+                    <div class="welcome-actions">
+                        <a href="/auth" class="btn btn-primary btn-large">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Войти в систему
+                        </a>
+                    </div>
                 </div>
             </div>
 

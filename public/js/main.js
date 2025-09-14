@@ -25,11 +25,11 @@ function checkAuthenticationOnLoad() {
         currentUser = JSON.parse(savedUser);
         authToken = savedToken;
         
-        const authScreen = document.getElementById('authScreen');
+        const welcomeScreen = document.getElementById('welcomeScreen');
         const mainMenu = document.getElementById('mainMenu');
         
-        if (authScreen && mainMenu) {
-            authScreen.style.display = 'none';
+        if (welcomeScreen && mainMenu) {
+            welcomeScreen.style.display = 'none';
             mainMenu.style.display = 'block';
         }
         

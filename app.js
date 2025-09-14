@@ -49,6 +49,11 @@ app.get('/', (req, res) => {
     res.render('index', { title: 'Приложение для запоминания текстов' });
 });
 
+// Страница авторизации
+app.get('/auth', (req, res) => {
+    res.render('auth', { title: 'Авторизация - Приложение для запоминания текстов' });
+});
+
 // Обработка 404
 app.use((req, res) => {
     res.status(404).render('error', { 

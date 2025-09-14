@@ -9,8 +9,8 @@ router.post('/route', authenticateToken, (req, res) => {
         const { textId, routeDescription } = req.body;
         const userId = req.user.id;
 
-        if (!textId || !routeDescription) {
-            return res.status(400).json({ error: 'ID текста и описание маршрута обязательны' });
+        if (!textId) {
+            return res.status(400).json({ error: 'ID текста обязателен' });
         }
 
         // Проверяем доступ к тексту
@@ -19,7 +19,10 @@ router.post('/route', authenticateToken, (req, res) => {
                 return res.status(403).json({ error: 'Нет доступа к этому тексту' });
             }
 
-            req.db.createRoute(userId, textId, routeDescription, (err, routeId) => {
+            // Используем переданное описание или стандартное
+            const finalDescription = routeDescription || 'Маршрут представлен в голове пользователя';
+
+            req.db.createRoute(userId, textId, finalDescription, (err, routeId) => {
                 if (err) {
                     console.error('Ошибка сохранения маршрута:', err);
                     return res.status(500).json({ error: 'Ошибка сохранения маршрута' });

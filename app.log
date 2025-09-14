@@ -1,6 +1,38 @@
-nohup: ignoring input
-[dotenv@17.2.2] injecting env (3) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+nohup: ввод игнорируется
+[dotenv@17.2.2] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
 Сервер запущен на порту 3000
 Подключение к SQLite базе данных установлено
-2025-09-11T18:38:57.730Z - GET /
-2025-09-11T18:39:04.243Z - POST /api/auth/register
+2025-09-14T07:00:36.382Z - GET /auth
+2025-09-14T07:00:40.538Z - GET /
+2025-09-14T07:01:04.946Z - GET /
+2025-09-14T07:01:05.012Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:07.278Z - GET /
+2025-09-14T07:01:07.332Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:08.484Z - GET /favicon.ico
+2025-09-14T07:01:09.611Z - GET /
+2025-09-14T07:01:09.669Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:11.348Z - GET /auth
+2025-09-14T07:01:11.411Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:13.857Z - POST /api/auth/login
+2025-09-14T07:01:14.981Z - GET /
+2025-09-14T07:01:15.070Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:16.513Z - GET /api/texts/
+2025-09-14T07:01:19.151Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:01:19.258Z - GET /api/wizard/text/1
+2025-09-14T07:01:19.300Z - GET /api/wizard/all-emojis?language=de
+2025-09-14T07:01:19.336Z - POST /api/wizard/emojis
+2025-09-14T07:02:08.801Z - GET /
+2025-09-14T07:02:08.872Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:02:10.195Z - GET /api/texts/
+2025-09-14T07:02:53.500Z - POST /api/texts/upload
+2025-09-14T07:02:53.634Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:02:53.752Z - GET /api/wizard/text/2
+2025-09-14T07:12:49.781Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:12:51.087Z - GET /api/wizard/text/2
+2025-09-14T07:12:52.471Z - GET /favicon.ico
+2025-09-14T07:12:56.562Z - GET /
+2025-09-14T07:12:56.611Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:12:59.669Z - GET /api/texts/
+2025-09-14T07:13:07.620Z - GET /.well-known/appspecific/com.chrome.devtools.json
+2025-09-14T07:13:07.743Z - GET /api/wizard/text/2
+2025-09-14T07:13:17.281Z - POST /api/wizard/route

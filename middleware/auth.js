@@ -23,7 +23,7 @@ const generateToken = (user) => {
     return jwt.sign(
         { id: user.id, username: user.username, email: user.email },
         JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: '7d' } // Увеличиваем время жизни токена до 7 дней
     );
 };
 

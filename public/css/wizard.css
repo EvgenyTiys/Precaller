@@ -120,16 +120,16 @@
 }
 
 /* Шаг 1: Маршрут */
-.route-form textarea {
-    min-height: 120px;
-    resize: vertical;
+.route-visualization {
+    text-align: center;
 }
 
 .route-tips {
-    margin-top: 2rem;
+    margin-bottom: 2rem;
     padding: 1.5rem;
     background: #e8f4f8;
     border-radius: 8px;
+    text-align: left;
 }
 
 .route-tips h4 {
@@ -144,6 +144,20 @@
 
 .route-tips li {
     margin-bottom: 0.5rem;
+}
+
+.route-instruction {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+}
+
+.route-instruction p {
+    margin: 0;
+    color: #155724;
+    font-size: 1.1rem;
 }
 
 /* Шаг 2: Фрагменты */

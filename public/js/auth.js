@@ -110,6 +110,7 @@ async function handleLogin(event) {
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         
+        
         // Обновляем глобальные переменные
         currentUser = response.user;
         authToken = response.token;
@@ -119,8 +120,10 @@ async function handleLogin(event) {
         
         window.app.showNotification('Успешный вход в систему!', 'success');
         
-        // Показываем главное меню
-        showMainMenu();
+        // Перенаправляем на главную страницу
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
         
     } catch (error) {
         console.error('Login error:', error);
@@ -173,6 +176,7 @@ async function handleRegister(event) {
         localStorage.setItem('authToken', response.token);
         localStorage.setItem('currentUser', JSON.stringify(response.user));
         
+        
         // Обновляем глобальные переменные
         currentUser = response.user;
         authToken = response.token;
@@ -182,25 +186,15 @@ async function handleRegister(event) {
         
         window.app.showNotification('Регистрация прошла успешно!', 'success');
         
-        // Показываем главное меню
-        showMainMenu();
+        // Перенаправляем на главную страницу
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
         
     } catch (error) {
         console.error('Register error:', error);
         window.app.showNotification(error.message || 'Ошибка регистрации', 'error');
     } finally {
         window.app.hideLoader();
-    }
-}
-
-// Показать главное меню после аутентификации
-function showMainMenu() {
-    const authScreen = document.getElementById('authScreen');
-    const mainMenu = document.getElementById('mainMenu');
-    
-    if (authScreen && mainMenu) {
-        authScreen.style.display = 'none';
-        mainMenu.style.display = 'block';
-        mainMenu.classList.add('fade-in');
     }
 }
