@@ -240,60 +240,94 @@ function initializeTextSelection() {
         return;
     }
     
-    // Инициализируем выделение текста
-    textContent.addEventListener('click', handleTextClick);
-    textContent.style.cursor = 'text';
+    // Инициализируем автоматическое разбиение по знакам препинания
+    initializePunctuationSplitting();
     
     updateFragmentInfo();
 }
 
-// Обработка клика по тексту для создания фрагментов
-function handleTextClick(event) {
-    const textContent = event.currentTarget;
-    const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    const offset = range.startOffset;
-    
-    // Находим позицию клика в тексте
-    const clickPosition = getClickPosition(event, textContent);
-    
-    if (clickPosition !== null) {
-        createFragment(clickPosition);
-    }
-}
-
-// Получение позиции клика в тексте
-function getClickPosition(event, textElement) {
-    const range = document.caretRangeFromPoint(event.clientX, event.clientY);
-    if (!range) return null;
-    
-    const textContent = textElement.textContent;
-    let position = 0;
-    
-    // Проходим по всем текстовым узлам до позиции клика
-    const walker = document.createTreeWalker(
-        textElement,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-    );
-    
-    let node;
-    while (node = walker.nextNode()) {
-        if (node === range.startContainer) {
-            position += range.startOffset;
-            break;
-        } else {
-            position += node.textContent.length;
-        }
-    }
-    
-    return position;
-}
-
-// Создание фрагмента
-function createFragment(endPosition) {
+// Инициализация автоматического разбиения по знакам препинания
+function initializePunctuationSplitting() {
     const textContent = document.getElementById('textContent');
+    const fullText = currentText.content;
+    
+    // Знаки препинания для разбиения
+    const punctuationMarks = /[.!?;:—–-]\s*/g;
+    
+    // Находим все позиции знаков препинания
+    const splitPositions = [];
+    let match;
+    while ((match = punctuationMarks.exec(fullText)) !== null) {
+        splitPositions.push({
+            position: match.index + match[0].length,
+            mark: match[0].trim(),
+            originalMatch: match[0]
+        });
+    }
+    
+    // Добавляем позицию в конце текста, если текст не заканчивается знаком препинания
+    if (splitPositions.length === 0 || splitPositions[splitPositions.length - 1].position < fullText.length) {
+        splitPositions.push({
+            position: fullText.length,
+            mark: '',
+            originalMatch: ''
+        });
+    }
+    
+    // Отображаем текст с маркерами
+    displayTextWithMarkers(fullText, splitPositions);
+}
+
+// Отображение текста с интерактивными маркерами
+function displayTextWithMarkers(fullText, splitPositions) {
+    const textContent = document.getElementById('textContent');
+    let html = '';
+    let lastPosition = 0;
+    
+    splitPositions.forEach((split, index) => {
+        // Добавляем текст до знака препинания
+        if (split.position > lastPosition) {
+            const textSegment = fullText.substring(lastPosition, split.position);
+            html += escapeHtml(textSegment);
+        }
+        
+        // Добавляем маркер фрагмента
+        html += `<span class="fragment-marker" data-split-index="${index}" data-position="${split.position}" title="Кликните, чтобы создать фрагмент до этого места">
+            <i class="fas fa-cut"></i>
+        </span>`;
+        
+        lastPosition = split.position;
+    });
+    
+    textContent.innerHTML = html;
+    
+    // Добавляем обработчики кликов для маркеров
+    addMarkerClickHandlers();
+}
+
+// Добавление обработчиков кликов для маркеров
+function addMarkerClickHandlers() {
+    const markers = document.querySelectorAll('.fragment-marker');
+    markers.forEach(marker => {
+        marker.addEventListener('click', handleMarkerClick);
+    });
+}
+
+// Обработка клика по маркеру фрагмента
+function handleMarkerClick(event) {
+    const marker = event.currentTarget;
+    const splitIndex = parseInt(marker.dataset.splitIndex);
+    const position = parseInt(marker.dataset.position);
+    
+    // Создаем фрагмент до выбранной позиции
+    createFragmentFromMarker(position, splitIndex);
+    
+    // Обновляем отображение маркеров
+    updateMarkersAfterFragment();
+}
+
+// Создание фрагмента из маркера
+function createFragmentFromMarker(endPosition, splitIndex) {
     const fullText = currentText.content;
     
     // Определяем начальную позицию
@@ -325,13 +359,14 @@ function createFragment(endPosition) {
     
     textFragments.push(fragment);
     
+    // Показываем уведомление
+    window.app.showNotification(`Создан фрагмент ${fragment.order}: "${fragmentText.substring(0, 50)}${fragmentText.length > 50 ? '...' : ''}"`, 'success');
+    
     // Обновляем отображение
-    displayFragments();
     updateFragmentInfo();
     
     // Проверяем, остался ли текст
     if (endPosition < fullText.length) {
-        // Есть еще текст
         const proceedBtn = document.getElementById('proceedToStep3');
         if (proceedBtn) {
             proceedBtn.disabled = false;
@@ -345,6 +380,31 @@ function createFragment(endPosition) {
         }
     }
 }
+
+// Обновление маркеров после создания фрагмента
+function updateMarkersAfterFragment() {
+    const markers = document.querySelectorAll('.fragment-marker');
+    const lastFragmentEnd = textFragments.length > 0 ? textFragments[textFragments.length - 1].endPos : 0;
+    
+    markers.forEach(marker => {
+        const position = parseInt(marker.dataset.position);
+        
+        if (position <= lastFragmentEnd) {
+            // Маркер находится в уже созданном фрагменте - скрываем его
+            marker.style.display = 'none';
+        } else {
+            // Маркер доступен для выбора
+            marker.style.display = 'inline-block';
+            marker.classList.remove('used');
+        }
+    });
+}
+
+// Старая функция handleTextClick удалена - теперь используются маркеры
+
+// Старые функции удалены - теперь используется система маркеров
+
+// Старая функция createFragment удалена - теперь используется createFragmentFromMarker
 
 // Отображение фрагментов
 function displayFragments() {
@@ -362,7 +422,7 @@ function displayFragments() {
         // Добавляем фрагмент
         html += `<span class="text-fragment" data-fragment-number="${fragment.order}">
             ${escapeHtml(fragment.content)}
-            <button class="fragment-edit-btn" onclick="editFragment(${index})">✎</button>
+            <button class="fragment-edit-btn" onclick="editFragment(${index})" title="Редактировать фрагмент">✎</button>
         </span>`;
         
         lastPosition = fragment.endPos;
@@ -374,6 +434,11 @@ function displayFragments() {
     }
     
     textContent.innerHTML = html;
+    
+    // Если есть оставшийся текст, переинициализируем маркеры
+    if (lastPosition < fullText.length) {
+        initializePunctuationSplitting();
+    }
 }
 
 // Отображение существующих фрагментов

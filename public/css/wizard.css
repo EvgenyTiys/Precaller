@@ -189,6 +189,7 @@
     border-radius: 4px;
     padding: 2px 4px;
     margin: 1px;
+    transition: all 0.2s ease;
 }
 
 .text-fragment:hover {
@@ -490,6 +491,61 @@
 
 .step-buttons .btn {
     min-width: 150px;
+}
+
+/* Маркеры фрагментов */
+.fragment-marker {
+    display: inline-block;
+    margin: 0 3px;
+    padding: 2px 6px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    vertical-align: middle;
+    position: relative;
+    z-index: 10;
+}
+
+.fragment-marker:hover {
+    background: #5a6fd8;
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.fragment-marker.used {
+    background: #28a745;
+    cursor: default;
+}
+
+.fragment-marker.used:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.fragment-marker i {
+    font-size: 0.7rem;
+}
+
+/* Индикатор клика */
+#clickIndicator {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    animation: clickPulse 0.6s ease-out;
+}
+
+@keyframes clickPulse {
+    0% { 
+        transform: scale(0); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: scale(2); 
+        opacity: 0; 
+    }
 }
 
 /* Адаптивность для мастера */
