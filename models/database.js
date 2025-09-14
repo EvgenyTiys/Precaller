@@ -115,6 +115,31 @@ class Database {
         this.db.get(query, [textId], callback);
     }
 
+    // Удаление текста и всех связанных данных
+    deleteText(textId, callback) {
+        // Сначала удаляем фрагменты
+        const deleteFragmentsQuery = `DELETE FROM text_fragments WHERE text_id = ?`;
+        this.db.run(deleteFragmentsQuery, [textId], (err) => {
+            if (err) {
+                return callback(err);
+            }
+            
+            // Затем удаляем маршруты
+            const deleteRoutesQuery = `DELETE FROM user_routes WHERE text_id = ?`;
+            this.db.run(deleteRoutesQuery, [textId], (err) => {
+                if (err) {
+                    return callback(err);
+                }
+                
+                // Наконец удаляем сам текст
+                const deleteTextQuery = `DELETE FROM texts WHERE id = ?`;
+                this.db.run(deleteTextQuery, [textId], function(err) {
+                    callback(err, this.changes);
+                });
+            });
+        });
+    }
+
     // Методы для работы с фрагментами
     createFragment(textId, fragmentOrder, content, startPos, endPos, callback) {
         const query = `INSERT INTO text_fragments (text_id, fragment_order, content, start_position, end_position) 

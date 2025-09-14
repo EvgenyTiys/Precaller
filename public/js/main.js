@@ -220,26 +220,34 @@ async function loadUserTexts() {
             return;
         }
         
-        container.innerHTML = texts.map(text => `
-            <div class="text-item">
-                <h3>${escapeHtml(text.title)}</h3>
-                <div class="text-meta">
-                    <span>Язык: ${getLanguageName(text.language)}</span>
-                    <span>Создан: ${window.app.formatDate(text.created_at)}</span>
+        const htmlContent = texts.map(text => {
+            const escapedTitle = escapeHtml(text.title);
+            return `
+                <div class="text-item">
+                    <h3>${escapedTitle}</h3>
+                    <div class="text-meta">
+                        <span>Язык: ${getLanguageName(text.language)}</span>
+                        <span>Создан: ${window.app.formatDate(text.created_at)}</span>
+                    </div>
+                    <div class="text-preview">
+                        ${escapeHtml(text.content.substring(0, 150))}${text.content.length > 150 ? '...' : ''}
+                    </div>
+                    <div class="text-actions">
+                        <button class="btn btn-primary" onclick="openWizard(${text.id})">
+                            <i class="fas fa-magic"></i> Мастер
+                        </button>
+                        <button class="btn btn-secondary" onclick="viewText(${text.id})">
+                            <i class="fas fa-eye"></i> Просмотр
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteText(${text.id}, '${escapedTitle.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                    </div>
                 </div>
-                <div class="text-preview">
-                    ${escapeHtml(text.content.substring(0, 150))}${text.content.length > 150 ? '...' : ''}
-                </div>
-                <div class="text-actions">
-                    <button class="btn btn-primary" onclick="openWizard(${text.id})">
-                        <i class="fas fa-magic"></i> Мастер
-                    </button>
-                    <button class="btn btn-secondary" onclick="viewText(${text.id})">
-                        <i class="fas fa-eye"></i> Просмотр
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        
+        container.innerHTML = htmlContent;
         
     } catch (error) {
         console.error('Load texts error:', error);
@@ -360,6 +368,35 @@ async function viewText(textId) {
 // Начать тренировку
 function startTraining(textId) {
     window.location.href = `/training.html?textId=${textId}`;
+}
+
+// Удаление текста
+async function deleteText(textId, textTitle) {
+    // Показываем подтверждение
+    const confirmed = confirm(`Вы уверены, что хотите удалить текст "${textTitle}"?\n\nЭто действие нельзя отменить.`);
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        window.app.showLoader();
+        
+        const response = await window.app.apiRequest(`/api/texts/${textId}`, {
+            method: 'DELETE'
+        });
+        
+        window.app.showNotification('Текст успешно удален', 'success');
+        
+        // Перезагружаем список текстов
+        await loadUserTexts();
+        
+    } catch (error) {
+        console.error('Delete text error:', error);
+        window.app.showNotification(error.message || 'Ошибка удаления текста', 'error');
+    } finally {
+        window.app.hideLoader();
+    }
 }
 
 // Утилитарные функции

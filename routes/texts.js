@@ -136,4 +136,48 @@ router.post('/:id/fragments', authenticateToken, (req, res) => {
     }
 });
 
+// Удаление текста
+router.delete('/:id', authenticateToken, (req, res) => {
+    try {
+        const textId = req.params.id;
+
+        // Проверяем доступ к тексту
+        req.db.getTextById(textId, (err, text) => {
+            if (err) {
+                console.error('Ошибка получения текста:', err);
+                return res.status(500).json({ error: 'Ошибка получения текста' });
+            }
+
+            if (!text) {
+                return res.status(404).json({ error: 'Текст не найден' });
+            }
+
+            // Проверяем, что текст принадлежит пользователю
+            if (text.user_id !== req.user.id) {
+                return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+            }
+
+            // Удаляем текст и все связанные данные
+            req.db.deleteText(textId, (err, changes) => {
+                if (err) {
+                    console.error('Ошибка удаления текста:', err);
+                    return res.status(500).json({ error: 'Ошибка удаления текста' });
+                }
+
+                if (changes === 0) {
+                    return res.status(404).json({ error: 'Текст не найден' });
+                }
+
+                res.json({ 
+                    message: 'Текст успешно удален',
+                    textId: parseInt(textId)
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка удаления текста:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
 module.exports = router;
