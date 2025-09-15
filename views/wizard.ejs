@@ -155,8 +155,19 @@
                         </div>
                         
                         <div class="tab-content" id="emojiTab">
+                            <!-- Поиск эмодзи -->
+                            <div class="emoji-search">
+                                <input type="text" id="emojiSearch" placeholder="Поиск эмодзи..." class="search-input">
+                            </div>
+                            
+                            <!-- Вкладки категорий -->
+                            <div class="emoji-categories" id="emojiCategories">
+                                <!-- Категории будут загружены динамически -->
+                            </div>
+                            
+                            <!-- Контейнер для эмодзи -->
                             <div class="all-emojis" id="allEmojis">
-                                <!-- Все смайлики будут загружены динамически -->
+                                <!-- Эмодзи будут загружены динамически -->
                             </div>
                         </div>
                         
@@ -205,6 +216,6 @@
 
     <script src="/js/app.js"></script>
     <script src="/js/auth.js"></script>
-    <script src="/js/wizard.js"></script>
+    <script src="/js/wizard.js?v=13"></script>
 </body>
 </html>

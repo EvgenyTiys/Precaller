@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/EvgenyTiys/Precaller#readme",
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
     "@modelcontextprotocol/sdk": "^1.17.5",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -27,9 +28,14 @@
     "dotenv": "^17.2.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "google-translate-api-x": "^10.7.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "sqlite3": "^5.1.7"
+    "natural": "^8.1.0",
+    "node-wordnet": "^0.1.12",
+    "sqlite3": "^5.1.7",
+    "wordnet-db": "^3.1.14",
+    "wordpos": "^2.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"

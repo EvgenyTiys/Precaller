@@ -25,7 +25,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// Настройка статических файлов с заголовками для предотвращения кэширования JS
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+}));
 app.use(logger);
 
 // Настройка шаблонизатора EJS
@@ -47,6 +56,11 @@ app.use('/api/training', trainingRoutes);
 // Главная страница
 app.get('/', (req, res) => {
     res.render('index', { title: 'Приложение для запоминания текстов' });
+});
+
+// Тестовая страница для эмодзи
+app.get('/test-emoji.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'test-emoji.html'));
 });
 
 // Страница авторизации

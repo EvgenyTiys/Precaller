@@ -6,6 +6,10 @@ let currentFragments = [];
 let currentFragmentIndex = 0;
 let textFragments = []; // Фрагменты, созданные пользователем
 let allEmojis = [];
+let emojiCategories = [];
+let currentCategory = 'people';
+let searchTimeout = null;
+let activeEmojiPosition = -1; // -1 означает новую позицию, >= 0 означает редактирование существующей
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeWizard();
@@ -107,6 +111,12 @@ function initializeWizardHandlers() {
     
     // Обработка вставки изображения
     document.addEventListener('paste', handleImagePaste);
+    
+    // Обработка поиска эмодзи
+    const emojiSearch = document.getElementById('emojiSearch');
+    if (emojiSearch) {
+        emojiSearch.addEventListener('input', handleEmojiSearch);
+    }
     
     // Выход
     const logoutBtn = document.getElementById('logoutBtn');
@@ -454,6 +464,11 @@ function displayExistingFragments() {
     displayFragments();
     updateFragmentInfo();
     
+    // Автоматически ищем эмодзи для фрагментов
+    setTimeout(() => {
+        autoFindEmojisForFragments();
+    }, 1000); // Задержка для полной загрузки DOM
+    
     const proceedBtn = document.getElementById('proceedToStep3');
     if (proceedBtn) {
         proceedBtn.disabled = false;
@@ -548,8 +563,22 @@ async function initializeStep3() {
     // Загружаем все смайлики
     await loadAllEmojis();
     
-    // Начинаем с первого фрагмента
-    currentFragmentIndex = 0;
+    // Загружаем существующие ассоциации в цепочку
+    loadExistingAssociations();
+    
+    // Находим первый фрагмент без ассоциации или устанавливаем первый как редактируемый
+    const firstEmptyIndex = findFirstEmptyAssociation();
+    if (firstEmptyIndex >= 0) {
+        // Есть пустые ассоциации - начинаем с первой пустой
+        currentFragmentIndex = firstEmptyIndex;
+        activeEmojiPosition = -1; // Режим новой позиции
+    } else {
+        // Все ассоциации заполнены - выделяем первую для редактирования
+        currentFragmentIndex = 0;
+        activeEmojiPosition = 0; // Режим редактирования первой
+    }
+    
+    updateChainDisplay();
     showCurrentFragment();
 }
 
@@ -564,10 +593,52 @@ async function loadAllEmojis() {
     }
 }
 
+// Загрузка существующих ассоциаций в цепочку
+function loadExistingAssociations() {
+    const chainLine = document.getElementById('chainLine');
+    if (!chainLine) return;
+    
+    // Очищаем существующую цепочку
+    chainLine.innerHTML = '';
+    
+    // Добавляем существующие ассоциации
+    currentFragments.forEach((fragment, index) => {
+        if (fragment.emoji || fragment.custom_word || fragment.custom_image) {
+            const association = fragment.emoji || fragment.custom_word || '🖼️';
+            const chainEmoji = document.createElement('div');
+            chainEmoji.className = 'chain-emoji';
+            chainEmoji.textContent = association;
+            chainEmoji.onclick = () => editFragmentAssociation(index);
+            chainEmoji.dataset.fragmentIndex = index;
+            chainLine.appendChild(chainEmoji);
+        }
+    });
+}
+
+// Поиск первой пустой ассоциации
+function findFirstEmptyAssociation() {
+    for (let i = 0; i < currentFragments.length; i++) {
+        const fragment = currentFragments[i];
+        if (!fragment.emoji && !fragment.custom_word && !fragment.custom_image) {
+            return i;
+        }
+    }
+    return -1; // Все ассоциации заполнены
+}
+
 // Показать текущий фрагмент
 async function showCurrentFragment() {
+    // Проверяем, есть ли незаполненные ассоциации
+    const firstEmptyIndex = findFirstEmptyAssociation();
+    
+    if (firstEmptyIndex < 0 && activeEmojiPosition < 0) {
+        // Все ассоциации заполнены и мы не в режиме редактирования
+        showFinishButton();
+        return;
+    }
+    
     if (currentFragmentIndex >= currentFragments.length) {
-        // Все фрагменты обработаны
+        // Выходим за границы массива
         showFinishButton();
         return;
     }
@@ -593,7 +664,9 @@ async function showCurrentFragment() {
     }
     
     if (associationInstruction) {
-        if (currentFragmentIndex === 0) {
+        if (activeEmojiPosition >= 0) {
+            associationInstruction.innerHTML = '<p>Редактируйте ассоциацию для этого фрагмента.</p>';
+        } else if (currentFragmentIndex === 0) {
             associationInstruction.innerHTML = '<p>Разместите какой-то предмет в начале воображаемого маршрута.</p>';
         } else {
             associationInstruction.innerHTML = '<p>Представьте, как вы идете по маршруту к следующему месту и размещаете мысленно следующий предмет.</p>';
@@ -614,21 +687,42 @@ async function loadSuggestedEmojis(fragmentText) {
     if (!suggestedEmojis) return;
     
     try {
-        const response = await window.app.apiRequest('/api/wizard/emojis', {
-            method: 'POST',
-            body: JSON.stringify({
-                fragmentText: fragmentText,
-                language: currentText.language
-            })
+        // Используем новую функцию поиска эмодзи
+        const emojis = await findEmojisByTranslation(fragmentText, 10);
+        
+        if (!emojis || emojis.length === 0) {
+            suggestedEmojis.innerHTML = '<p>Эмодзи не найдены</p>';
+            return;
+        }
+        
+        const emojisHtml = emojis.map(emoji => {
+            const emojiNative = emoji.native || '❓';
+            const emojiName = emoji.name || 'Unknown';
+            const tooltip = `${emojiName} (${emoji.source || 'прямой'}: ${emoji.originalWord || 'unknown'} -> ${emoji.translation || 'unknown'})`;
+            
+            return `
+                <button class="suggested-emoji-btn" 
+                        data-emoji="${emojiNative}" 
+                        data-name="${emojiName}"
+                        title="${tooltip}">
+                    ${emojiNative}
+                </button>
+            `;
+        }).join('');
+        
+        suggestedEmojis.innerHTML = `
+            <div class="suggested-emojis-title">Предложенные эмодзи (${emojis.length}):</div>
+            <div class="suggested-emojis-list">${emojisHtml}</div>
+        `;
+        
+        // Добавляем обработчики клика
+        suggestedEmojis.querySelectorAll('.suggested-emoji-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const emoji = this.dataset.emoji;
+                const name = this.dataset.name;
+                selectEmoji(emoji, name);
+            });
         });
-        
-        const emojis = response.emojis;
-        
-        suggestedEmojis.innerHTML = emojis.map(emoji => `
-            <button class="emoji-btn" onclick="selectEmoji('${emoji.emoji}')">
-                ${emoji.emoji}
-            </button>
-        `).join('');
         
     } catch (error) {
         console.error('Load suggested emojis error:', error);
@@ -637,7 +731,7 @@ async function loadSuggestedEmojis(fragmentText) {
 }
 
 // Выбор смайлика
-async function selectEmoji(emoji) {
+async function selectEmoji(emoji, name) {
     try {
         const fragment = currentFragments[currentFragmentIndex];
         
@@ -649,11 +743,48 @@ async function selectEmoji(emoji) {
             })
         });
         
-        // Добавляем смайлик в цепочку
-        addToStoryChain(emoji);
+        // Обновляем ассоциацию в данных фрагмента
+        fragment.emoji = emoji;
+        fragment.custom_word = null;
+        fragment.custom_image = null;
         
-        // Переходим к следующему фрагменту
-        currentFragmentIndex++;
+        const chainLine = document.getElementById('chainLine');
+        const chainEmojis = chainLine.querySelectorAll('.chain-emoji');
+        
+        if (activeEmojiPosition >= 0 && activeEmojiPosition < chainEmojis.length) {
+            // Заменяем существующий смайлик
+            chainEmojis[activeEmojiPosition].textContent = emoji;
+            
+            // Ищем следующую незаполненную позицию
+            const nextEmptyIndex = findFirstEmptyAssociation();
+            if (nextEmptyIndex >= 0) {
+                // Есть незаполненные ассоциации - переходим к ним
+                activeEmojiPosition = -1;
+                currentFragmentIndex = nextEmptyIndex;
+            } else {
+                // Все заполнены - остаемся в режиме редактирования, переходим к следующему
+                const nextIndex = (activeEmojiPosition + 1) % currentFragments.length;
+                activeEmojiPosition = nextIndex;
+                currentFragmentIndex = nextIndex;
+            }
+        } else {
+            // Добавляем новый смайлик
+            addToStoryChain(emoji, currentFragmentIndex);
+            
+            // Ищем следующую незаполненную позицию
+            const nextEmptyIndex = findFirstEmptyAssociation();
+            if (nextEmptyIndex >= 0) {
+                // Есть незаполненные ассоциации
+                activeEmojiPosition = -1;
+                currentFragmentIndex = nextEmptyIndex;
+            } else {
+                // Все заполнены - переходим в режим редактирования первого элемента
+                activeEmojiPosition = 0;
+                currentFragmentIndex = 0;
+            }
+        }
+        
+        updateChainDisplay();
         showCurrentFragment();
         
     } catch (error) {
@@ -662,27 +793,153 @@ async function selectEmoji(emoji) {
     }
 }
 
+// Поиск следующей незаполненной позиции
+function findNextEmptyPosition() {
+    for (let i = 0; i < currentFragments.length; i++) {
+        const chainLine = document.getElementById('chainLine');
+        const chainEmojis = chainLine.querySelectorAll('.chain-emoji');
+        const emojiAtPosition = Array.from(chainEmojis).find(emoji => 
+            parseInt(emoji.dataset.fragmentIndex) === i
+        );
+        if (!emojiAtPosition) {
+            return i;
+        }
+    }
+    return -1; // Все позиции заполнены
+}
+
 // Добавление в цепочку рассказа
-function addToStoryChain(association) {
+function addToStoryChain(association, fragmentIndex) {
     const chainLine = document.getElementById('chainLine');
     if (!chainLine) return;
     
     const chainEmoji = document.createElement('div');
     chainEmoji.className = 'chain-emoji';
     chainEmoji.textContent = association;
-    chainEmoji.onclick = () => editFragmentAssociation(currentFragmentIndex - 1);
+    chainEmoji.onclick = () => editFragmentAssociation(fragmentIndex);
+    chainEmoji.dataset.fragmentIndex = fragmentIndex;
     
     chainLine.appendChild(chainEmoji);
+    updateChainDisplay();
+}
+
+// Обновление отображения цепочки с кольцом-индикатором
+function updateChainDisplay() {
+    const chainLine = document.getElementById('chainLine');
+    if (!chainLine) return;
+    
+    const chainEmojis = chainLine.querySelectorAll('.chain-emoji');
+    const totalFragments = currentFragments.length;
+    
+    // Убираем активные классы со всех элементов
+    chainEmojis.forEach(emoji => {
+        emoji.classList.remove('active', 'next-position');
+    });
+    
+    // Удаляем существующее кольцо-индикатор
+    const existingRing = chainLine.querySelector('.position-ring');
+    if (existingRing) {
+        existingRing.remove();
+    }
+    
+    // Создаем кольцо-индикатор
+    const ring = document.createElement('div');
+    ring.className = 'position-ring';
+    
+    if (activeEmojiPosition >= 0 && activeEmojiPosition < chainEmojis.length) {
+        // Редактирование существующего смайлика
+        const targetEmoji = chainEmojis[activeEmojiPosition];
+        targetEmoji.classList.add('active');
+        ring.classList.add('editing');
+        ring.style.display = 'none'; // Скрываем кольцо, так как подсвечиваем сам смайлик
+    } else {
+        // Новая позиция - показываем пустое кольцо
+        ring.classList.add('empty');
+        ring.onclick = () => {
+            // При клике на пустое кольцо ничего не делаем
+        };
+        chainLine.appendChild(ring);
+    }
 }
 
 // Показать пользовательские ассоциации
 function showCustomAssociation() {
+    console.log('Showing custom association...');
     const customAssociation = document.getElementById('customAssociation');
+    console.log('Custom association element found:', !!customAssociation);
+    
     if (customAssociation) {
         customAssociation.style.display = 'block';
+        console.log('Custom association displayed');
         
-        // Загружаем все смайлики в первую вкладку
-        loadAllEmojisTab();
+        // Убеждаемся, что вкладка эмодзи активна
+        const emojiTab = document.getElementById('emojiTab');
+        if (emojiTab) {
+            emojiTab.style.display = 'block';
+            console.log('Emoji tab displayed');
+        }
+        
+        // Активируем кнопку вкладки эмодзи
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const emojiTabBtn = document.querySelector('[data-tab="emoji"]');
+        if (emojiTabBtn) {
+            emojiTabBtn.classList.add('active');
+            console.log('Emoji tab button activated');
+        }
+        
+        // Скрываем другие вкладки
+        document.querySelectorAll('.tab-content').forEach(content => {
+            if (content.id !== 'emojiTab') {
+                content.style.display = 'none';
+            }
+        });
+        
+        // Проверяем наличие всех необходимых элементов
+        const emojiSearch = document.getElementById('emojiSearch');
+        const emojiCategories = document.getElementById('emojiCategories');
+        const allEmojis = document.getElementById('allEmojis');
+        
+        console.log('Elements found:');
+        console.log('- emojiSearch:', !!emojiSearch);
+        console.log('- emojiCategories:', !!emojiCategories);
+        console.log('- allEmojis:', !!allEmojis);
+        
+        // Дополнительная отладка - проверим все элементы с этими ID
+        console.log('All elements with emojiSearch ID:', document.querySelectorAll('#emojiSearch').length);
+        console.log('All elements with emojiCategories ID:', document.querySelectorAll('#emojiCategories').length);
+        console.log('All elements with allEmojis ID:', document.querySelectorAll('#allEmojis').length);
+        
+        // Проверим, есть ли элементы в emojiTab
+        if (emojiTab) {
+            console.log('EmojiTab innerHTML length:', emojiTab.innerHTML.length);
+            console.log('EmojiTab contains emojiSearch:', emojiTab.querySelector('#emojiSearch') !== null);
+            console.log('EmojiTab contains emojiCategories:', emojiTab.querySelector('#emojiCategories') !== null);
+        }
+        
+        // Если элементы не найдены, попробуем найти их через несколько миллисекунд
+        if (!emojiSearch || !emojiCategories) {
+            console.log('Elements not found, retrying in 100ms...');
+            setTimeout(() => {
+                const retryEmojiSearch = document.getElementById('emojiSearch');
+                const retryEmojiCategories = document.getElementById('emojiCategories');
+                console.log('Retry - emojiSearch:', !!retryEmojiSearch);
+                console.log('Retry - emojiCategories:', !!retryEmojiCategories);
+                
+                if (retryEmojiSearch && retryEmojiCategories) {
+                    loadAllEmojisTab();
+                } else {
+                    console.log('Elements still not found, creating them manually...');
+                    createMissingElements();
+                }
+            }, 100);
+        } else {
+            // Загружаем все смайлики в первую вкладку
+            loadAllEmojisTab();
+        }
+    } else {
+        console.error('Custom association element not found!');
     }
 }
 
@@ -696,14 +953,146 @@ function hideCustomAssociation() {
 
 // Загрузка всех смайликов во вкладку
 function loadAllEmojisTab() {
+    console.log('Loading emoji categories and emojis...');
+    loadEmojiCategories();
+    loadEmojisByCategory(currentCategory);
+}
+
+// Загрузка категорий эмодзи
+async function loadEmojiCategories() {
+    try {
+        console.log('Loading categories...');
+        const response = await window.app.apiRequest('/api/wizard/categories');
+        emojiCategories = response.categories;
+        console.log('Categories loaded:', emojiCategories.length);
+        
+        const categoriesContainer = document.getElementById('emojiCategories');
+        console.log('Categories container found:', !!categoriesContainer);
+        
+        if (categoriesContainer) {
+            categoriesContainer.innerHTML = emojiCategories.map(category => `
+                <button class="category-tab ${category.id === currentCategory ? 'active' : ''}" 
+                        data-category="${category.id}" 
+                        onclick="switchEmojiCategory('${category.id}')">
+                    <i class="${category.icon}"></i>
+                    <span>${category.name}</span>
+                    <span class="category-count">${category.emojiCount}</span>
+                </button>
+            `).join('');
+            console.log('Categories HTML inserted');
+        } else {
+            console.error('Categories container not found!');
+        }
+    } catch (error) {
+        console.error('Load categories error:', error);
+    }
+}
+
+// Переключение категории эмодзи
+async function switchEmojiCategory(categoryId) {
+    currentCategory = categoryId;
+    
+    // Обновляем активную вкладку
+    document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`[data-category="${categoryId}"]`).classList.add('active');
+    
+    // Загружаем эмодзи для категории
+    await loadEmojisByCategory(categoryId);
+}
+
+// Загрузка эмодзи по категории
+async function loadEmojisByCategory(categoryId) {
     const allEmojisContainer = document.getElementById('allEmojis');
     if (!allEmojisContainer) return;
     
-    allEmojisContainer.innerHTML = allEmojis.map(emoji => `
-        <button class="emoji-btn" onclick="selectCustomEmoji('${emoji.emoji}')">
-            ${emoji.emoji}
-        </button>
-    `).join('');
+    // Показываем индикатор загрузки
+    allEmojisContainer.innerHTML = `
+        <div class="emoji-loading">
+            <i class="fas fa-spinner"></i>
+            Загрузка эмодзи...
+        </div>
+    `;
+    
+    try {
+        const response = await window.app.apiRequest(`/api/wizard/emojis/category/${categoryId}`);
+        const emojis = response.emojis;
+        
+        if (emojis.length === 0) {
+            allEmojisContainer.innerHTML = `
+                <div class="emoji-empty">
+                    <i class="fas fa-search"></i>
+                    <p>Эмодзи не найдены</p>
+                </div>
+            `;
+            return;
+        }
+        
+        allEmojisContainer.innerHTML = emojis.map(emoji => `
+            <button class="emoji-btn" onclick="selectCustomEmoji('${emoji.native}')" title="${emoji.name}">
+                ${emoji.native}
+            </button>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Load emojis by category error:', error);
+        allEmojisContainer.innerHTML = `
+            <div class="emoji-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Ошибка загрузки эмодзи</p>
+            </div>
+        `;
+    }
+}
+
+// Поиск эмодзи
+async function searchEmojis(query) {
+    if (!query.trim()) {
+        loadEmojisByCategory(currentCategory);
+        return;
+    }
+    
+    const allEmojisContainer = document.getElementById('allEmojis');
+    if (!allEmojisContainer) return;
+    
+    // Показываем индикатор загрузки
+    allEmojisContainer.innerHTML = `
+        <div class="emoji-loading">
+            <i class="fas fa-spinner"></i>
+            Поиск эмодзи...
+        </div>
+    `;
+    
+    try {
+        const response = await window.app.apiRequest(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}`);
+        const emojis = response.emojis;
+        
+        if (emojis.length === 0) {
+            allEmojisContainer.innerHTML = `
+                <div class="emoji-empty">
+                    <i class="fas fa-search"></i>
+                    <p>Эмодзи не найдены для "${query}"</p>
+                </div>
+            `;
+            return;
+        }
+        
+        allEmojisContainer.innerHTML = emojis.map(emoji => `
+            <button class="emoji-btn" onclick="selectCustomEmoji('${emoji.native}')" title="${emoji.name}">
+                ${emoji.native}
+            </button>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Search emojis error:', error);
+        allEmojisContainer.innerHTML = `
+            <div class="emoji-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Ошибка поиска эмодзи</p>
+            </div>
+        `;
+    }
 }
 
 // Выбор пользовательского смайлика
@@ -822,21 +1211,59 @@ async function handleCustomAssociation() {
             })
         });
         
-        // Добавляем в цепочку
+        // Обновляем ассоциацию в данных фрагмента
+        if (associationData.emoji) {
+            fragment.emoji = associationData.emoji;
+            fragment.custom_word = null;
+            fragment.custom_image = null;
+        } else if (associationData.customWord) {
+            fragment.custom_word = associationData.customWord;
+            fragment.emoji = null;
+            fragment.custom_image = null;
+        } else if (associationData.customImage) {
+            fragment.custom_image = associationData.customImage;
+            fragment.emoji = null;
+            fragment.custom_word = null;
+        }
+        
+        // Добавляем в цепочку или обновляем существующий
         const association = associationData.emoji || associationData.customWord || '🖼️';
-        addToStoryChain(association);
+        const chainLine = document.getElementById('chainLine');
+        const chainEmojis = chainLine.querySelectorAll('.chain-emoji');
+        
+        if (activeEmojiPosition >= 0 && activeEmojiPosition < chainEmojis.length) {
+            // Заменяем существующий
+            chainEmojis[activeEmojiPosition].textContent = association;
+        } else {
+            // Добавляем новый
+            addToStoryChain(association, currentFragmentIndex);
+        }
         
         // Скрываем пользовательские ассоциации
         hideCustomAssociation();
         
-        // Переходим к следующему фрагменту
-        currentFragmentIndex++;
+        // Ищем следующую незаполненную позицию
+        const nextEmptyIndex = findFirstEmptyAssociation();
+        if (nextEmptyIndex >= 0) {
+            // Есть незаполненные ассоциации
+            activeEmojiPosition = -1;
+            currentFragmentIndex = nextEmptyIndex;
+        } else {
+            // Все заполнены - переходим в режим редактирования первого элемента
+            activeEmojiPosition = 0;
+            currentFragmentIndex = 0;
+        }
+        
+        updateChainDisplay();
         showCurrentFragment();
         
         // Очищаем выбор
         window.selectedCustomEmoji = null;
         window.selectedCustomImage = null;
-        document.getElementById('customWord').value = '';
+        const customWordInput = document.getElementById('customWord');
+        if (customWordInput) {
+            customWordInput.value = '';
+        }
         
     } catch (error) {
         console.error('Custom association error:', error);
@@ -880,8 +1307,260 @@ function handleFinishWizard() {
 
 // Редактирование ассоциации фрагмента
 function editFragmentAssociation(fragmentIndex) {
+    activeEmojiPosition = fragmentIndex;
     currentFragmentIndex = fragmentIndex;
+    updateChainDisplay();
     showCurrentFragment();
+}
+
+// Обработка поиска эмодзи
+function handleEmojiSearch(event) {
+    const query = event.target.value.trim();
+    
+    // Очищаем предыдущий таймаут
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Устанавливаем новый таймаут для поиска
+    searchTimeout = setTimeout(() => {
+        searchEmojis(query);
+    }, 300); // Задержка 300мс для избежания частых запросов
+}
+
+// Создание недостающих элементов
+function createMissingElements() {
+    const emojiTab = document.getElementById('emojiTab');
+    if (!emojiTab) {
+        console.error('EmojiTab not found, cannot create elements');
+        return;
+    }
+    
+    console.log('Creating missing elements in emojiTab...');
+    
+        // Создаем поле поиска, если его нет
+        if (!document.getElementById('emojiSearch')) {
+            const searchDiv = document.createElement('div');
+            searchDiv.className = 'emoji-search';
+            searchDiv.innerHTML = '<input type="text" id="emojiSearch" placeholder="Поиск эмодзи..." class="search-input">';
+            emojiTab.insertBefore(searchDiv, emojiTab.firstChild);
+            console.log('Created emojiSearch element');
+            
+            // Добавляем обработчик поиска
+            const searchInput = document.getElementById('emojiSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchEmojis(this.value);
+                });
+                console.log('Added search event listener');
+            }
+        }
+    
+    // Создаем контейнер категорий, если его нет
+    if (!document.getElementById('emojiCategories')) {
+        const categoriesDiv = document.createElement('div');
+        categoriesDiv.className = 'emoji-categories';
+        categoriesDiv.id = 'emojiCategories';
+        categoriesDiv.innerHTML = '<!-- Категории будут загружены динамически -->';
+        
+        // Вставляем после поля поиска
+        const searchElement = document.getElementById('emojiSearch');
+        if (searchElement && searchElement.parentNode) {
+            // Вставляем после родительского элемента поля поиска
+            searchElement.parentNode.parentNode.insertBefore(categoriesDiv, searchElement.parentNode.nextSibling);
+        } else {
+            // Если не можем найти правильное место, просто добавляем в конец
+            emojiTab.appendChild(categoriesDiv);
+        }
+        console.log('Created emojiCategories element');
+    }
+    
+    // Теперь попробуем загрузить данные
+    setTimeout(() => {
+        loadAllEmojisTab();
+    }, 50);
+}
+
+// Функция для поиска эмодзи по переведенному тексту
+async function findEmojisByTranslation(text, maxEmojis = 10) {
+    try {
+        console.log(`Searching emojis for translated text: "${text}"`);
+        
+        const response = await fetch(`/api/wizard/emojis/translate?text=${encodeURIComponent(text)}&maxEmojis=${maxEmojis}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log(`Found ${data.emojis.length} emojis for text: "${text}"`);
+            return data.emojis;
+        } else {
+            console.error('Translation search failed:', data.error);
+            return [];
+        }
+    } catch (error) {
+        console.error('Error in translation search:', error);
+        return [];
+    }
+}
+
+// Функция для автоматического поиска эмодзи по фрагментам текста (новый итеративный алгоритм)
+async function autoFindEmojisForFragments() {
+    const fragments = document.querySelectorAll('.text-fragment');
+    if (fragments.length === 0) {
+        console.log('No fragments found for auto emoji search');
+        return;
+    }
+    
+    console.log(`Auto-searching emojis for ${fragments.length} fragments using iterative algorithm`);
+    
+    for (const fragment of fragments) {
+        const text = fragment.textContent.trim();
+        if (!text) continue;
+        
+        console.log(`Processing fragment: "${text}"`);
+        
+        // Используем новый итеративный алгоритм для всего текста фрагмента
+        const emojis = await findEmojisByTranslation(text, 10);
+        
+        console.log(`Found ${emojis.length} emojis for fragment:`, emojis);
+        
+        if (emojis.length > 0) {
+            // Создаем контейнер для предложенных эмодзи
+            let suggestedContainer = fragment.querySelector('.suggested-emojis');
+            if (!suggestedContainer) {
+                suggestedContainer = document.createElement('div');
+                suggestedContainer.className = 'suggested-emojis';
+                fragment.appendChild(suggestedContainer);
+            }
+            
+            // Создаем подробный tooltip для каждого эмодзи
+            const emojisHtml = emojis.map(emoji => {
+                console.log('Processing emoji:', emoji);
+                console.log('emoji.native:', emoji.native);
+                console.log('emoji.name:', emoji.name);
+                
+                let tooltip = `${emoji.name || 'Unknown'}`;
+                if (emoji.source === 'direct') {
+                    tooltip += ` (прямой: ${emoji.originalWord} -> ${emoji.translation})`;
+                } else if (emoji.source === 'ontology') {
+                    tooltip += ` (онтология: ${emoji.originalWord} -> ${emoji.translation} -> ${emoji.ontologyWord})`;
+                }
+                
+                // Временно используем простые символы для тестирования
+                const emojiNative = emoji.native || '❓';
+                const emojiName = emoji.name || 'Unknown';
+                
+                // Используем только базовые эмодзи для надежности
+                const testEmoji = emojiNative === '🎂' ? '🎂' : 
+                                 emojiNative === '🎈' ? '🎈' : 
+                                 emojiNative === '🎉' ? '🎉' : 
+                                 emojiNative === '⏲️' ? '⏲️' : 
+                                 emojiNative === '⌛' ? '⌛' : 
+                                 emojiNative === '👿' ? '👿' : 
+                                 emojiNative === '☝️' ? '☝️' : 
+                                 emojiNative === '🫵' ? '🫵' : 
+                                 emojiNative === '🇧🇲' ? '🇧🇲' : 
+                                 emojiNative === '👨‍🔧' ? '👨‍🔧' : 
+                                 emojiNative === '⛷️' ? '⛷️' : 
+                                 emojiNative === '🏂' ? '🏂' : 
+                                 emojiNative === '🎿' ? '🎿' : 
+                                 emojiNative === '🇧🇦' ? '🇧🇦' : 
+                                 emojiNative === '🏊‍♂️' ? '🏊‍♂️' : 
+                                 emojiNative === '☄️' ? '☄️' : 
+                                 emojiNative === '🛜' ? '🛜' : 
+                                 emojiNative === '🍥' ? '🍥' : 
+                                 emojiNative === '🌀' ? '🌀' : 
+                                 emojiNative === '😋' ? '😋' : 
+                                 emojiNative === '🏺' ? '🏺' : 
+                                 emojiNative === '🏈' ? '🏈' : 
+                                 emojiNative === '🚑' ? '🚑' : 
+                                 emojiNative === '🌡️' ? '🌡️' : 
+                                 emojiNative === '🤣' ? '🤣' : 
+                                 emojiNative === '🤒' ? '🤒' : 
+                                 emojiNative === '🍧' ? '🍧' : 
+                                 emojiNative === '🈶' ? '🈶' : 
+                                 '❓';
+                
+                console.log('Final emojiNative:', emojiNative);
+                console.log('Final emojiName:', emojiName);
+                
+                return `
+                    <button class="suggested-emoji-btn" 
+                            data-emoji="${emojiNative}" 
+                            data-name="${emojiName}"
+                            title="${tooltip}">
+                        ${emojiNative}
+                    </button>
+                `;
+            }).join('');
+            
+            suggestedContainer.innerHTML = `
+                <div class="suggested-emojis-title">Предложенные эмодзи (${emojis.length}):</div>
+                <div class="suggested-emojis-list">${emojisHtml}</div>
+            `;
+            
+            console.log('Generated HTML:', suggestedContainer.innerHTML);
+            
+            // Добавляем обработчики клика
+            suggestedContainer.querySelectorAll('.suggested-emoji-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const emoji = this.dataset.emoji;
+                    const name = this.dataset.name;
+                    console.log(`Selected emoji: ${emoji} (${name})`);
+                    
+                    // Добавляем эмодзи к фрагменту
+                    const currentEmojis = fragment.dataset.emojis ? fragment.dataset.emojis.split(',') : [];
+                    if (!currentEmojis.includes(emoji)) {
+                        currentEmojis.push(emoji);
+                        fragment.dataset.emojis = currentEmojis.join(',');
+                        
+                        // Обновляем отображение эмодзи фрагмента
+                        updateFragmentEmojis(fragment);
+                    }
+                    
+                    // Удаляем предложения после выбора
+                    suggestedContainer.remove();
+                });
+            });
+        }
+    }
+}
+
+// Функция для обновления отображения эмодзи фрагмента
+function updateFragmentEmojis(fragment) {
+    const emojis = fragment.dataset.emojis ? fragment.dataset.emojis.split(',') : [];
+    
+    // Находим контейнер для эмодзи фрагмента
+    let emojiContainer = fragment.querySelector('.fragment-emojis');
+    if (!emojiContainer) {
+        emojiContainer = document.createElement('div');
+        emojiContainer.className = 'fragment-emojis';
+        fragment.appendChild(emojiContainer);
+    }
+    
+    // Обновляем содержимое
+    if (emojis.length > 0) {
+        emojiContainer.innerHTML = `
+            <div class="fragment-emojis-title">Эмодзи:</div>
+            <div class="fragment-emojis-list">
+                ${emojis.map(emoji => `
+                    <span class="fragment-emoji" title="Удалить">${emoji}</span>
+                `).join('')}
+            </div>
+        `;
+        
+        // Добавляем обработчики для удаления эмодзи
+        emojiContainer.querySelectorAll('.fragment-emoji').forEach(emojiSpan => {
+            emojiSpan.addEventListener('click', () => {
+                const emojiToRemove = emojiSpan.textContent;
+                const currentEmojis = fragment.dataset.emojis ? fragment.dataset.emojis.split(',') : [];
+                const updatedEmojis = currentEmojis.filter(emoji => emoji !== emojiToRemove);
+                fragment.dataset.emojis = updatedEmojis.join(',');
+                updateFragmentEmojis(fragment);
+            });
+        });
+    } else {
+        emojiContainer.innerHTML = '';
+    }
 }
 
 // Утилитарная функция экранирования HTML

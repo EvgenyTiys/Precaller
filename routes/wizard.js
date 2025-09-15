@@ -1,6 +1,14 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
-const { findEmojisForText, getRandomEmojis } = require('../models/emojiDatabase');
+const { findEmojisForText: findEmojisForTextOld, getRandomEmojis } = require('../models/emojiDatabase');
+const { 
+    getCategories, 
+    getEmojisByCategory, 
+    searchEmojis, 
+    getRandomEmojis: getRandomEmojisMart,
+    getEmojisWithTranslations 
+} = require('../models/emojiMartDatabase');
+const { findEmojisForText: findEmojisByTranslation } = require('../models/offlineTranslationService');
 const router = express.Router();
 
 // Сохранение маршрута пользователя (Шаг 1)
@@ -41,7 +49,7 @@ router.post('/route', authenticateToken, (req, res) => {
 });
 
 // Получение смайликов для фрагмента (Шаг 3)
-router.post('/emojis', authenticateToken, (req, res) => {
+router.post('/emojis', authenticateToken, async (req, res) => {
     try {
         const { fragmentText, language = 'ru' } = req.body;
 
@@ -49,8 +57,8 @@ router.post('/emojis', authenticateToken, (req, res) => {
             return res.status(400).json({ error: 'Текст фрагмента обязателен' });
         }
 
-        // Поиск смайликов для текста
-        let emojis = findEmojisForText(fragmentText, language, 10);
+        // Поиск смайликов для текста с новым алгоритмом
+        let emojis = await findEmojisByTranslation(fragmentText, 10);
         
         // Если ничего не найдено, добавляем случайные смайлики
         if (emojis.length === 0) {
@@ -109,6 +117,58 @@ router.get('/all-emojis', authenticateToken, (req, res) => {
     }
 });
 
+// Получение категорий эмодзи (временно без аутентификации для тестирования)
+router.get('/categories', (req, res) => {
+    try {
+        const categories = getCategories();
+        res.json({ categories });
+    } catch (error) {
+        console.error('Ошибка получения категорий:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Получение эмодзи по категории (временно без аутентификации для тестирования)
+router.get('/emojis/category/:categoryId', (req, res) => {
+    try {
+        const { categoryId } = req.params;
+        const emojis = getEmojisByCategory(categoryId);
+        res.json({ emojis });
+    } catch (error) {
+        console.error('Ошибка получения эмодзи по категории:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Поиск эмодзи (временно без аутентификации для тестирования)
+router.get('/emojis/search', (req, res) => {
+    try {
+        const { q, language = 'ru' } = req.query;
+        
+        if (!q) {
+            return res.status(400).json({ error: 'Поисковый запрос обязателен' });
+        }
+        
+        const emojis = searchEmojis(q, language);
+        res.json({ emojis });
+    } catch (error) {
+        console.error('Ошибка поиска эмодзи:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Получение всех эмодзи с категориями (для новой системы)
+router.get('/emojis/all', authenticateToken, (req, res) => {
+    try {
+        const { categoryId } = req.query;
+        const emojis = getEmojisWithTranslations(categoryId);
+        res.json({ emojis });
+    } catch (error) {
+        console.error('Ошибка получения всех эмодзи:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
 // Получение данных для мастера по конкретному тексту
 router.get('/text/:id', authenticateToken, (req, res) => {
     try {
@@ -150,6 +210,35 @@ router.get('/text/:id', authenticateToken, (req, res) => {
     } catch (error) {
         console.error('Ошибка получения данных мастера:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// API для поиска эмодзи по переведенному тексту
+router.get('/emojis/translate', async (req, res) => {
+    try {
+        const { text, maxEmojis = 10 } = req.query;
+        
+        if (!text) {
+            return res.status(400).json({ error: 'Текст для поиска обязателен' });
+        }
+        
+        console.log(`Searching emojis for text: "${text}"`);
+        
+        const emojis = await findEmojisByTranslation(text, parseInt(maxEmojis));
+        
+        res.json({
+            success: true,
+            text: text,
+            emojis: emojis,
+            count: emojis.length
+        });
+        
+    } catch (error) {
+        console.error('Ошибка поиска эмодзи по переводу:', error);
+        res.status(500).json({ 
+            error: 'Ошибка поиска эмодзи', 
+            details: error.message 
+        });
     }
 });
 
