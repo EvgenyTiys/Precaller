@@ -65,6 +65,7 @@ function initializeWizardHandlers() {
     // Шаг 2: Навигация
     const backToStep1 = document.getElementById('backToStep1');
     const proceedToStep3 = document.getElementById('proceedToStep3');
+    const undoLastFragmentBtn = document.getElementById('undoLastFragment');
     
     if (backToStep1) {
         backToStep1.addEventListener('click', () => showStep(1));
@@ -76,6 +77,13 @@ function initializeWizardHandlers() {
                 saveFragments().then(() => showStep(3));
             }
         });
+    }
+
+    if (undoLastFragmentBtn) {
+        undoLastFragmentBtn.addEventListener('click', () => {
+            undoLastFragment();
+        });
+        updateUndoButtonState();
     }
     
     // Шаг 3: Навигация
@@ -301,10 +309,8 @@ function displayTextWithMarkers(fullText, splitPositions) {
             html += escapeHtml(textSegment);
         }
         
-        // Добавляем маркер фрагмента
-        html += `<span class="fragment-marker" data-split-index="${index}" data-position="${split.position}" title="Кликните, чтобы создать фрагмент до этого места">
-            <i class="fas fa-cut"></i>
-        </span>`;
+        // Добавляем маркер фрагмента (span + FontAwesome) для единообразия стилей
+        html += `<span class="fragment-marker" data-position="${split.position}" onclick="createFragmentFromMarker(${split.position}, ${index})" title="Создать фрагмент здесь"><i class="fas fa-cut"></i></span>`;
         
         lastPosition = split.position;
     });
@@ -372,7 +378,8 @@ function createFragmentFromMarker(endPosition, splitIndex) {
     // Показываем уведомление
     window.app.showNotification(`Создан фрагмент ${fragment.order}: "${fragmentText.substring(0, 50)}${fragmentText.length > 50 ? '...' : ''}"`, 'success');
     
-    // Обновляем отображение
+    // Обновляем отображение текста с цветными фрагментами
+    displayFragments();
     updateFragmentInfo();
     
     // Проверяем, остался ли текст
@@ -393,21 +400,24 @@ function createFragmentFromMarker(endPosition, splitIndex) {
 
 // Обновление маркеров после создания фрагмента
 function updateMarkersAfterFragment() {
-    const markers = document.querySelectorAll('.fragment-marker');
     const lastFragmentEnd = textFragments.length > 0 ? textFragments[textFragments.length - 1].endPos : 0;
+    console.log('Updating markers after fragment, lastFragmentEnd:', lastFragmentEnd);
+    
+    // Скрываем маркеры, которые находятся до конца последнего фрагмента
+    const markers = document.querySelectorAll('.fragment-marker');
+    let visibleMarkers = 0;
     
     markers.forEach(marker => {
         const position = parseInt(marker.dataset.position);
-        
         if (position <= lastFragmentEnd) {
-            // Маркер находится в уже созданном фрагменте - скрываем его
             marker.style.display = 'none';
         } else {
-            // Маркер доступен для выбора
             marker.style.display = 'inline-block';
-            marker.classList.remove('used');
+            visibleMarkers++;
         }
     });
+    
+    console.log('Visible markers after update:', visibleMarkers);
 }
 
 // Старая функция handleTextClick удалена - теперь используются маркеры
@@ -418,6 +428,8 @@ function updateMarkersAfterFragment() {
 
 // Отображение фрагментов
 function displayFragments() {
+    console.log('displayFragments called with fragments:', textFragments.length);
+    
     const textContent = document.getElementById('textContent');
     const fullText = currentText.content;
     let html = '';
@@ -429,26 +441,108 @@ function displayFragments() {
             html += escapeHtml(fullText.substring(lastPosition, fragment.startPos));
         }
         
-        // Добавляем фрагмент
-        html += `<span class="text-fragment" data-fragment-number="${fragment.order}">
+        // Добавляем фрагмент с чередующимися цветами
+        const colorIndex = (index % 4) + 1;
+        const colors = [
+            { bg: 'rgba(102, 126, 234, 0.2)', border: '#667eea', shadow: 'rgba(102, 126, 234, 0.3)' },
+            { bg: 'rgba(40, 167, 69, 0.2)', border: '#28a745', shadow: 'rgba(40, 167, 69, 0.3)' },
+            { bg: 'rgba(255, 193, 7, 0.2)', border: '#ffc107', shadow: 'rgba(255, 193, 7, 0.3)' },
+            { bg: 'rgba(220, 53, 69, 0.2)', border: '#dc3545', shadow: 'rgba(220, 53, 69, 0.3)' }
+        ];
+        const color = colors[colorIndex - 1];
+        
+        console.log(`Creating fragment ${index} with color: ${color.bg}`);
+        const isLast = index === (textFragments.length - 1);
+        const actionBtn = isLast
+            ? `<button class="fragment-edit-btn" onclick="undoLastFragment()" title="Отменить последний фрагмент">🗑️</button>`
+            : '';
+        const fragmentHtml = `<span class="text-fragment" data-fragment-number="${fragment.order}" style="background: ${color.bg}; border: 2px solid ${color.border}; box-shadow: 0 1px 3px ${color.shadow};">
             ${escapeHtml(fragment.content)}
-            <button class="fragment-edit-btn" onclick="editFragment(${index})" title="Редактировать фрагмент">✎</button>
+            ${actionBtn}
         </span>`;
+        console.log('Fragment HTML:', fragmentHtml);
+        html += fragmentHtml;
         
         lastPosition = fragment.endPos;
     });
     
-    // Добавляем оставшийся текст
+    // Добавляем оставшийся текст с маркерами
     if (lastPosition < fullText.length) {
-        html += escapeHtml(fullText.substring(lastPosition));
+        const remainingText = fullText.substring(lastPosition);
+        html += addMarkersToText(remainingText, lastPosition);
     }
     
+    console.log('Setting innerHTML with length:', html.length);
     textContent.innerHTML = html;
+    console.log('innerHTML set, checking for fragments...');
     
-    // Если есть оставшийся текст, переинициализируем маркеры
-    if (lastPosition < fullText.length) {
-        initializePunctuationSplitting();
+    // Проверяем, что фрагменты действительно созданы
+    const createdFragments = textContent.querySelectorAll('.text-fragment');
+    console.log('Found fragments in DOM:', createdFragments.length);
+    createdFragments.forEach((frag, i) => {
+        console.log(`Fragment ${i}:`, frag.outerHTML.substring(0, 100) + '...');
+    });
+}
+
+// Добавление маркеров к тексту
+function addMarkersToText(text, startPosition) {
+    // Используем ту же логику поиска, что и при инициализации
+    const punctuationRegex = /[.!?;:—–-]\s*/g;
+    const splitPositions = [];
+    let match;
+    while ((match = punctuationRegex.exec(text)) !== null) {
+        const absolutePosition = startPosition + match.index + match[0].length;
+        // Избегаем дублей одинаковых позиций
+        if (splitPositions.length === 0 || splitPositions[splitPositions.length - 1] !== absolutePosition) {
+            splitPositions.push(absolutePosition);
+        }
     }
+    
+    if (splitPositions.length === 0) {
+        console.log('No split positions found in text');
+        return escapeHtml(text);
+    }
+    
+    console.log('Adding markers to text at positions:', splitPositions);
+    
+    let html = '';
+    let lastPos = 0;
+    
+    splitPositions.forEach((position, index) => {
+        const relativePos = position - startPosition;
+        
+        // Проверяем, не попадает ли маркер внутрь существующего фрагмента
+        let isInsideFragment = false;
+        for (const fragment of textFragments) {
+            if (position > fragment.startPos && position <= fragment.endPos) {
+                isInsideFragment = true;
+                break;
+            }
+        }
+        
+        // Добавляем текст до маркера
+        if (relativePos > lastPos) {
+            html += escapeHtml(text.substring(lastPos, relativePos));
+        }
+        
+        // Добавляем маркер только если он не внутри фрагмента
+        if (!isInsideFragment) {
+            html += `<span class="fragment-marker" data-position="${position}" onclick="createFragmentFromMarker(${position}, ${index})" title="Создать фрагмент здесь"><i class="fas fa-cut"></i></span>`;
+            console.log(`Added marker at position ${position}`);
+        } else {
+            console.log(`Skipped marker at position ${position} (inside fragment)`);
+        }
+        
+        lastPos = relativePos;
+    });
+    
+    // Добавляем оставшийся текст
+    if (lastPos < text.length) {
+        html += escapeHtml(text.substring(lastPos));
+    }
+    
+    console.log('Markers added to text');
+    return html;
 }
 
 // Отображение существующих фрагментов
@@ -502,6 +596,25 @@ function updateFragmentInfo() {
     }
 }
 
+// Состояние кнопки Отменить
+function updateUndoButtonState() {
+    const undoLastFragmentBtn = document.getElementById('undoLastFragment');
+    if (!undoLastFragmentBtn) return;
+    undoLastFragmentBtn.disabled = textFragments.length === 0;
+}
+
+// Отменить последний фрагмент
+function undoLastFragment() {
+    if (textFragments.length === 0) return;
+    const removed = textFragments.pop();
+    // Пере-нумеруем
+    textFragments.forEach((f, i) => { f.order = i + 1; });
+    window.app.showNotification(`Отменён фрагмент ${removed.order}`, 'info');
+    // Перерисуем текст и список
+    displayFragments();
+    updateFragmentInfo();
+    updateUndoButtonState();
+}
 // Редактирование фрагмента
 function editFragment(index) {
     // Здесь можно добавить функционал редактирования
@@ -1065,7 +1178,8 @@ async function searchEmojis(query) {
     `;
     
     try {
-        const response = await window.app.apiRequest(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}`);
+        const lang = (currentText && currentText.language) ? currentText.language : 'en';
+        const response = await window.app.apiRequest(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}&language=${encodeURIComponent(lang)}`);
         const emojis = response.emojis;
         
         if (emojis.length === 0) {

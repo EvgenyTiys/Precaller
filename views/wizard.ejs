@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мастер запоминания - <%= title %></title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/wizard.css">
+    <link rel="stylesheet" href="/css/wizard.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -50,6 +50,7 @@
                     <div class="step-title">Ассоциации</div>
                 </div>
             </div>
+
 
             <!-- Шаг 1: Выбор маршрута -->
             <div class="wizard-step" id="wizardStep1">
@@ -113,6 +114,7 @@
                     
                     <div class="step-buttons">
                         <button class="btn btn-secondary" id="backToStep1">Назад</button>
+                        <button class="btn btn-secondary" id="undoLastFragment" disabled>Отменить последний фрагмент</button>
                         <button class="btn btn-primary" id="proceedToStep3" disabled>Перейти к ассоциациям</button>
                     </div>
                 </div>

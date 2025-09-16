@@ -140,17 +140,40 @@ router.get('/emojis/category/:categoryId', (req, res) => {
     }
 });
 
-// Поиск эмодзи (временно без аутентификации для тестирования)
-router.get('/emojis/search', (req, res) => {
+// Поиск эмодзи (поддержка ru/en через разные источники)
+router.get('/emojis/search', async (req, res) => {
     try {
         const { q, language = 'ru' } = req.query;
         
         if (!q) {
             return res.status(400).json({ error: 'Поисковый запрос обязателен' });
         }
-        
-        const emojis = searchEmojis(q, language);
-        res.json({ emojis });
+
+        let results = [];
+        const lang = (language || 'en').toLowerCase();
+
+        if (lang === 'ru' || lang === 'de') {
+            // Используем оффлайн перевод и онтологию для поиска подходящих эмодзи
+            try {
+                const emojis = await findEmojisByTranslation(q, 24);
+                // Приводим к унифицированному формату для фронта
+                results = emojis.map(e => ({
+                    id: e.id || e.native || e.emoji || e.name,
+                    name: e.name || 'emoji',
+                    native: e.native || e.emoji || '❓',
+                    keywords: e.keywords || [],
+                    category: e.category || 'misc'
+                }));
+            } catch (e) {
+                console.error('Translation-based search failed, fallback to EmojiMart:', e.message);
+                results = searchEmojis(q, 'en');
+            }
+        } else {
+            // Английский и прочие языки — прямой поиск по Emoji Mart
+            results = searchEmojis(q, 'en');
+        }
+
+        res.json({ emojis: results });
     } catch (error) {
         console.error('Ошибка поиска эмодзи:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });

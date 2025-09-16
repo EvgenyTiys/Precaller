@@ -184,16 +184,55 @@
 .text-fragment {
     position: relative;
     display: inline;
-    background: rgba(102, 126, 234, 0.1);
-    border: 2px solid #667eea;
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin: 1px;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 2px;
     transition: all 0.2s ease;
+    /* Цвета будут задаваться через цветные классы */
 }
 
-.text-fragment:hover {
-    background: rgba(102, 126, 234, 0.2);
+/* Базовый hover эффект убран - используются специфичные для каждого цвета */
+
+/* Разные цвета для фрагментов */
+.text-fragment.fragment-color-1 {
+    background: rgba(102, 126, 234, 0.2) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3) !important;
+}
+
+.text-fragment.fragment-color-2 {
+    background: rgba(40, 167, 69, 0.2) !important;
+    border-color: #28a745 !important;
+    box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3) !important;
+}
+
+.text-fragment.fragment-color-3 {
+    background: rgba(255, 193, 7, 0.2) !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 1px 3px rgba(255, 193, 7, 0.3) !important;
+}
+
+.text-fragment.fragment-color-4 {
+    background: rgba(220, 53, 69, 0.2) !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Hover эффекты для цветных фрагментов */
+.text-fragment.fragment-color-1:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
+}
+
+.text-fragment.fragment-color-2:hover {
+    background: rgba(40, 167, 69, 0.3) !important;
+}
+
+.text-fragment.fragment-color-3:hover {
+    background: rgba(255, 193, 7, 0.3) !important;
+}
+
+.text-fragment.fragment-color-4:hover {
+    background: rgba(220, 53, 69, 0.3) !important;
 }
 
 .text-fragment::before {
@@ -518,12 +557,21 @@
 .fragment-marker.used {
     background: #28a745;
     cursor: default;
+    border: 2px solid #1e7e34;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
 }
 
 .fragment-marker.used:hover {
     transform: none;
-    box-shadow: none;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
 }
+
+.fragment-marker.used i {
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
 
 .fragment-marker i {
     font-size: 0.7rem;
