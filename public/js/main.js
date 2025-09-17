@@ -43,6 +43,8 @@ function initializeMenuHandlers() {
     const uploadTextOption = document.getElementById('uploadTextOption');
     const selectTextOption = document.getElementById('selectTextOption');
     const trainingOption = document.getElementById('trainingOption');
+    const textsLink = document.getElementById('textsLink');
+    const trainingLink = document.getElementById('trainingLink');
     
     if (uploadTextOption) {
         uploadTextOption.addEventListener('click', showUploadForm);
@@ -54,6 +56,24 @@ function initializeMenuHandlers() {
     
     if (trainingOption) {
         trainingOption.addEventListener('click', showTrainingList);
+    }
+    
+    // Ссылки в хедере: "Мои тексты" и "Тренировка"
+    if (textsLink) {
+        textsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            showTextsList();
+        });
+    }
+    
+    if (trainingLink) {
+        trainingLink.addEventListener('click', function(e) {
+            // Перехватываем только пустые ссылки типа '#'
+            if (trainingLink.getAttribute('href') === '#' || trainingLink.getAttribute('href') === '') {
+                e.preventDefault();
+                showTrainingList();
+            }
+        });
     }
     
     // Кнопки навигации

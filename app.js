@@ -58,6 +58,11 @@ app.get('/', (req, res) => {
     res.render('index', { title: 'Приложение для запоминания текстов' });
 });
 
+// Страница тренировки
+app.get('/training', (req, res) => {
+    res.render('training', { title: 'Тренировка' });
+});
+
 // Тестовая страница для эмодзи
 app.get('/test-emoji.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'test-emoji.html'));
