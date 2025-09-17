@@ -316,31 +316,9 @@ function displayTextWithMarkers(fullText, splitPositions) {
     });
     
     textContent.innerHTML = html;
-    
-    // Добавляем обработчики кликов для маркеров
-    addMarkerClickHandlers();
 }
 
-// Добавление обработчиков кликов для маркеров
-function addMarkerClickHandlers() {
-    const markers = document.querySelectorAll('.fragment-marker');
-    markers.forEach(marker => {
-        marker.addEventListener('click', handleMarkerClick);
-    });
-}
-
-// Обработка клика по маркеру фрагмента
-function handleMarkerClick(event) {
-    const marker = event.currentTarget;
-    const splitIndex = parseInt(marker.dataset.splitIndex);
-    const position = parseInt(marker.dataset.position);
-    
-    // Создаем фрагмент до выбранной позиции
-    createFragmentFromMarker(position, splitIndex);
-    
-    // Обновляем отображение маркеров
-    updateMarkersAfterFragment();
-}
+// Удалены дополнительные обработчики кликов для маркеров, чтобы избежать двойного создания фрагмента
 
 // Создание фрагмента из маркера
 function createFragmentFromMarker(endPosition, splitIndex) {
@@ -650,13 +628,18 @@ async function saveFragments() {
         
         window.app.showNotification('Фрагменты сохранены!', 'success');
         
-        // Обновляем currentFragments
-        currentFragments = textFragments.map(f => ({
-            id: f.id || null,
-            fragment_order: f.order,
+        // После сохранения обязательно загружаем фрагменты из БД,
+        // чтобы получить их реальные ID
+        const refreshed = await window.app.apiRequest(`/api/wizard/text/${currentTextId}`);
+        currentFragments = (refreshed.fragments || []).map(f => ({
+            id: f.id,
+            fragment_order: f.fragment_order,
             content: f.content,
-            start_position: f.startPos,
-            end_position: f.endPos
+            start_position: f.start_position,
+            end_position: f.end_position,
+            emoji: f.emoji || null,
+            custom_word: f.custom_word || null,
+            custom_image: f.custom_image || null
         }));
         
     } catch (error) {
@@ -959,9 +942,10 @@ function updateChainDisplay() {
     const ring = document.createElement('div');
     ring.className = 'position-ring';
     
-    if (activeEmojiPosition >= 0 && activeEmojiPosition < chainEmojis.length) {
-        // Редактирование существующего смайлика
-        const targetEmoji = chainEmojis[activeEmojiPosition];
+    if (activeEmojiPosition >= 0) {
+        // Редактирование существующего смайлика: ищем по индексу фрагмента,
+        // а не по порядку элементов в DOM
+        const targetEmoji = chainLine.querySelector(`.chain-emoji[data-fragment-index="${activeEmojiPosition}"]`);
         targetEmoji.classList.add('active');
         ring.classList.add('editing');
         ring.style.display = 'none'; // Скрываем кольцо, так как подсвечиваем сам смайлик
@@ -1178,7 +1162,9 @@ async function searchEmojis(query) {
     `;
     
     try {
-        const lang = (currentText && currentText.language) ? currentText.language : 'en';
+        // Определяем язык по вводу: если есть кириллица — используем ru, иначе язык текста
+        const isCyrillic = /[А-Яа-яЁё]/.test(query);
+        const lang = isCyrillic ? 'ru' : ((currentText && currentText.language) ? currentText.language : 'en');
         const response = await window.app.apiRequest(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}&language=${encodeURIComponent(lang)}`);
         const emojis = response.emojis;
         

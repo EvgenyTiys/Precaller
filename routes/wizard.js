@@ -150,30 +150,72 @@ router.get('/emojis/search', async (req, res) => {
         }
 
         let results = [];
-        const lang = (language || 'en').toLowerCase();
+        const isCyrillic = /[А-Яа-яЁё]/.test(q);
+        const lang = isCyrillic ? 'ru' : (language || 'en').toLowerCase();
+        console.log(`[emoji-search] q="${q}" lang=${lang} isCyrillic=${isCyrillic}`);
 
-        if (lang === 'ru' || lang === 'de') {
-            // Используем оффлайн перевод и онтологию для поиска подходящих эмодзи
+        if (lang === 'ru') {
+            // Прямой поиск: сначала через findEmojisForText (ru), затем фолбэк подстроками
+            const { emojiDatabase, findEmojisForText } = require('../models/emojiDatabase');
+            const needle = (q || '').toLowerCase().trim();
+            let ruList = [];
+
             try {
-                const emojis = await findEmojisByTranslation(q, 24);
-                // Приводим к унифицированному формату для фронта
-                results = emojis.map(e => ({
-                    id: e.id || e.native || e.emoji || e.name,
-                    name: e.name || 'emoji',
-                    native: e.native || e.emoji || '❓',
-                    keywords: e.keywords || [],
-                    category: e.category || 'misc'
+                const direct = findEmojisForText(needle, 'ru', 50) || [];
+                ruList = direct.map(item => ({
+                    id: item.emoji,
+                    name: (item.translations && item.translations[0]) ? item.translations[0] : 'emoji',
+                    native: item.emoji,
+                    keywords: item.translations || [],
+                    category: 'misc'
                 }));
-            } catch (e) {
-                console.error('Translation-based search failed, fallback to EmojiMart:', e.message);
-                results = searchEmojis(q, 'en');
+            } catch(e) {
+                console.error('[emoji-search] findEmojisForText error:', e.message);
             }
+
+            for (const [emoji, tr] of Object.entries(emojiDatabase)) {
+                const ruWords = (tr && tr.ru) ? tr.ru : [];
+                if (ruWords.some(w => {
+                    const ww = (w || '').toLowerCase();
+                    return ww.includes(needle) || needle.includes(ww);
+                })) {
+                    ruList.push({
+                        id: emoji,
+                        name: ruWords[0] || 'emoji',
+                        native: emoji,
+                        keywords: ruWords,
+                        category: tr.category || 'misc'
+                    });
+                }
+            }
+            results = ruList.slice(0, 50);
+        } else if (lang === 'de') {
+            // Немецкий — используем переводческий сервис
+            const emojis = await findEmojisByTranslation(q, 24);
+            results = emojis.map(e => ({
+                id: e.id || e.native || e.emoji || e.name,
+                name: e.name || 'emoji',
+                native: e.native || e.emoji || '❓',
+                keywords: e.keywords || [],
+                category: e.category || 'misc'
+            }));
         } else {
             // Английский и прочие языки — прямой поиск по Emoji Mart
             results = searchEmojis(q, 'en');
         }
 
-        res.json({ emojis: results });
+        // Дедупликация результатов по native/id
+        const seen = new Set();
+        const deduped = [];
+        for (const e of results) {
+            const key = (e && (e.native || e.id || e.emoji)) || '';
+            if (!seen.has(key)) {
+                seen.add(key);
+                deduped.push(e);
+            }
+        }
+        console.log(`[emoji-search] results=${results.length} deduped=${deduped.length}`);
+        res.json({ emojis: deduped });
     } catch (error) {
         console.error('Ошибка поиска эмодзи:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
