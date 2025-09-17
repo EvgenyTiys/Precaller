@@ -1,0 +1,961 @@
+/* Стили для мастера запоминания */
+
+/* Индикатор прогресса */
+.progress-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    gap: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 100%;
+    width: 2rem;
+    height: 3px;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.step:last-child::after {
+    display: none;
+}
+
+.step.active::after {
+    background: #667eea;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    z-index: 2;
+    position: relative;
+}
+
+.step.active .step-number {
+    background: #667eea;
+    color: white;
+}
+
+.step.completed .step-number {
+    background: #28a745;
+    color: white;
+}
+
+.step-title {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.step.active .step-title {
+    color: #667eea;
+    font-weight: 500;
+}
+
+/* Шаги мастера */
+.wizard-step {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.step-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+}
+
+.instruction {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.instruction p {
+    margin-bottom: 1rem;
+    color: #495057;
+    line-height: 1.6;
+}
+
+.requirement {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+}
+
+.requirement i {
+    color: #856404;
+    margin-top: 0.2rem;
+}
+
+.requirement strong {
+    color: #856404;
+}
+
+/* Шаг 1: Маршрут */
+.route-visualization {
+    text-align: center;
+}
+
+.route-tips {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #e8f4f8;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.route-tips h4 {
+    color: #0c5460;
+    margin-bottom: 1rem;
+}
+
+.route-tips ul {
+    padding-left: 1.5rem;
+    color: #0c5460;
+}
+
+.route-tips li {
+    margin-bottom: 0.5rem;
+}
+
+.route-instruction {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+}
+
+.route-instruction p {
+    margin: 0;
+    color: #155724;
+    font-size: 1.1rem;
+}
+
+/* Шаг 2: Фрагменты */
+.text-editor {
+    margin: 2rem 0;
+}
+
+.text-content {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    min-height: 300px;
+    cursor: text;
+    user-select: text;
+}
+
+.text-content.selecting {
+    cursor: crosshair;
+}
+
+.text-fragment {
+    position: relative;
+    display: inline;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 2px;
+    transition: all 0.2s ease;
+    /* Цвета будут задаваться через цветные классы */
+}
+
+/* Базовый hover эффект убран - используются специфичные для каждого цвета */
+
+/* Разные цвета для фрагментов */
+.text-fragment.fragment-color-1 {
+    background: rgba(102, 126, 234, 0.2) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3) !important;
+}
+
+.text-fragment.fragment-color-2 {
+    background: rgba(40, 167, 69, 0.2) !important;
+    border-color: #28a745 !important;
+    box-shadow: 0 1px 3px rgba(40, 167, 69, 0.3) !important;
+}
+
+.text-fragment.fragment-color-3 {
+    background: rgba(255, 193, 7, 0.2) !important;
+    border-color: #ffc107 !important;
+    box-shadow: 0 1px 3px rgba(255, 193, 7, 0.3) !important;
+}
+
+.text-fragment.fragment-color-4 {
+    background: rgba(220, 53, 69, 0.2) !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 1px 3px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Hover эффекты для цветных фрагментов */
+.text-fragment.fragment-color-1:hover {
+    background: rgba(102, 126, 234, 0.3) !important;
+}
+
+.text-fragment.fragment-color-2:hover {
+    background: rgba(40, 167, 69, 0.3) !important;
+}
+
+.text-fragment.fragment-color-3:hover {
+    background: rgba(255, 193, 7, 0.3) !important;
+}
+
+.text-fragment.fragment-color-4:hover {
+    background: rgba(220, 53, 69, 0.3) !important;
+}
+
+.text-fragment::before {
+    content: attr(data-fragment-number);
+    position: absolute;
+    top: -20px;
+    left: 0;
+    background: #667eea;
+    color: white;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.fragment-edit-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: none;
+}
+
+.text-fragment:hover .fragment-edit-btn {
+    display: block;
+}
+
+.fragments-info {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.fragments-list {
+    margin-top: 1rem;
+}
+
+.fragment-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.fragment-number {
+    background: #667eea;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.fragment-text {
+    flex: 1;
+    color: #495057;
+}
+
+.fragment-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fragment-actions .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    min-width: auto;
+}
+
+/* Шаг 3: Ассоциации */
+.current-fragment {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #28a745;
+}
+
+.fragment-info {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fragment-number {
+    background: #28a745;
+    color: #fff;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* Специальные стили для индикатора текущего фрагмента на шаге 3,
+   чтобы не наследовать фиксированные размеры кружков из списка фрагментов */
+.current-fragment .fragment-number {
+    width: auto;
+    height: auto;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: #28a745;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+#currentFragmentText {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.association-instruction {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #e8f4f8;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.association-instruction p {
+    margin: 0;
+    color: #0c5460;
+    font-weight: 500;
+}
+
+/* Выбор смайликов */
+.emoji-selection {
+    margin-bottom: 2rem;
+}
+
+.emoji-selection h4 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.suggested-emojis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.emoji-btn {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji-btn:hover {
+    border-color: #667eea;
+    transform: scale(1.05);
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.emoji-btn.selected {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+    transform: scale(1.1);
+}
+
+/* Пользовательские ассоциации */
+.custom-association {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.custom-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    color: #6c757d;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-content {
+    min-height: 200px;
+}
+
+.all-emojis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+}
+
+/* Загрузка изображения */
+.image-upload {
+    text-align: center;
+}
+
+.image-drop-zone {
+    border: 2px dashed #667eea;
+    border-radius: 8px;
+    padding: 3rem 2rem;
+    background: rgba(102, 126, 234, 0.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-drop-zone:hover {
+    border-color: #5a6fd8;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.image-drop-zone i {
+    font-size: 3rem;
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.image-drop-zone p {
+    color: #667eea;
+    font-weight: 500;
+    margin: 0;
+}
+
+.image-drop-zone.dragover {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.image-drop-zone.dragover i,
+.image-drop-zone.dragover p {
+    color: #28a745;
+}
+
+#imageCanvas {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+/* Ввод слова */
+.word-input {
+    text-align: center;
+}
+
+.word-input label {
+    display: block;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.word-input input {
+    max-width: 300px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+/* Кнопки шагов */
+.step-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.step-buttons .btn {
+    min-width: 150px;
+}
+
+/* Маркеры фрагментов */
+.fragment-marker {
+    display: inline-block;
+    margin: 0 3px;
+    padding: 2px 6px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    vertical-align: middle;
+    position: relative;
+    z-index: 10;
+}
+
+.fragment-marker:hover {
+    background: #5a6fd8;
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.fragment-marker.used {
+    background: #28a745;
+    cursor: default;
+    border: 2px solid #1e7e34;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.fragment-marker.used:hover {
+    transform: none;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.fragment-marker.used i {
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+
+.fragment-marker i {
+    font-size: 0.7rem;
+}
+
+/* Индикатор клика */
+#clickIndicator {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    animation: clickPulse 0.6s ease-out;
+}
+
+@keyframes clickPulse {
+    0% { 
+        transform: scale(0); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: scale(2); 
+        opacity: 0; 
+    }
+}
+
+/* Адаптивность для мастера */
+@media (max-width: 768px) {
+    .progress-indicator {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .step::after {
+        display: none;
+    }
+    
+    .step {
+        flex-direction: row;
+        gap: 1rem;
+    }
+    
+    .suggested-emojis {
+        justify-content: center;
+    }
+    
+    .all-emojis {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    }
+    
+    .custom-tabs {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .tab-btn {
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 0;
+    }
+    
+    .tab-btn.active {
+        background: #667eea;
+        color: white;
+        border-bottom-color: #667eea;
+    }
+    
+    .step-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .step-buttons .btn {
+        width: 100%;
+    }
+}
+
+/* Стили для поиска эмодзи */
+.emoji-search {
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Стили для категорий эмодзи */
+.emoji-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.category-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.category-tab:hover {
+    border-color: #667eea;
+    background: #f0f2ff;
+}
+
+.category-tab.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.category-tab i {
+    font-size: 1rem;
+}
+
+.category-count {
+    background: rgba(0, 0, 0, 0.1);
+    color: inherit;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.category-tab.active .category-count {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Улучшенные стили для контейнера эмодзи */
+.all-emojis {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.emoji-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border: 2px solid #e9ecef;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.5rem;
+    position: relative;
+}
+
+.emoji-btn:hover {
+    border-color: #667eea;
+    background: #f0f2ff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.emoji-btn.selected {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+.emoji-btn.selected::after {
+    content: '✓';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Стили для загрузки */
+.emoji-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.emoji-loading i {
+    margin-right: 0.5rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для пустого состояния */
+.emoji-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.emoji-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Адаптивность для новых элементов */
+@media (max-width: 768px) {
+    .emoji-categories {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .category-tab {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+    
+    .all-emojis {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        max-height: 250px;
+    }
+    
+    .emoji-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+}
+
+/* Стили для предложенных эмодзи */
+.suggested-emojis {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.suggested-emojis-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.suggested-emojis-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.suggested-emoji-btn {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+}
+
+.suggested-emoji-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Styles for fragment emojis */
+.fragment-emojis {
+    margin-top: 10px;
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.fragment-emojis-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.fragment-emojis-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.fragment-emoji {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.fragment-emoji:hover {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.suggested-emoji-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Адаптивность для предложенных эмодзи */
+@media (max-width: 768px) {
+    .suggested-emojis {
+        padding: 8px;
+    }
+    
+    .suggested-emoji-btn {
+        min-width: 35px;
+        height: 35px;
+        font-size: 1rem;
+        padding: 6px 10px;
+    }
+}

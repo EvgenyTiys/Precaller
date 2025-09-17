@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест эмодзи</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/wizard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+        <h1>Тест системы эмодзи</h1>
+        
+        <div class="custom-association" id="customAssociation" style="display: block;">
+            <div class="custom-tabs">
+                <button class="tab-btn active" data-tab="emoji">Смайлик</button>
+                <button class="tab-btn" data-tab="image">Изображение</button>
+                <button class="tab-btn" data-tab="word">Слово</button>
+            </div>
+            
+            <div class="tab-content" id="emojiTab">
+                <!-- Поиск эмодзи -->
+                <div class="emoji-search">
+                    <input type="text" id="emojiSearch" placeholder="Поиск эмодзи..." class="search-input">
+                </div>
+                
+                <!-- Вкладки категорий -->
+                <div class="emoji-categories" id="emojiCategories">
+                    <!-- Категории будут загружены динамически -->
+                </div>
+                
+                <!-- Контейнер для эмодзи -->
+                <div class="all-emojis" id="allEmojis">
+                    <!-- Эмодзи будут загружены динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Простая функция для тестирования
+        async function testEmojiSystem() {
+            console.log('Testing emoji system...');
+            
+            try {
+                // Тестируем загрузку категорий
+                const response = await fetch('/api/wizard/categories');
+                const data = await response.json();
+                console.log('Categories loaded:', data.categories.length);
+                
+                // Отображаем категории
+                const categoriesContainer = document.getElementById('emojiCategories');
+                if (categoriesContainer) {
+                    categoriesContainer.innerHTML = data.categories.map(category => `
+                        <button class="category-tab" data-category="${category.id}" onclick="switchCategory('${category.id}')">
+                            <i class="${category.icon}"></i>
+                            <span>${category.name}</span>
+                            <span class="category-count">${category.emojiCount}</span>
+                        </button>
+                    `).join('');
+                    console.log('Categories displayed');
+                }
+                
+                // Тестируем загрузку эмодзи
+                const emojiResponse = await fetch('/api/wizard/emojis/category/people');
+                const emojiData = await emojiResponse.json();
+                console.log('Emojis loaded:', emojiData.emojis.length);
+                
+                // Отображаем первые 20 эмодзи
+                const emojisContainer = document.getElementById('allEmojis');
+                if (emojisContainer) {
+                    emojisContainer.innerHTML = emojiData.emojis.slice(0, 20).map(emoji => `
+                        <button class="emoji-btn" title="${emoji.name}">
+                            ${emoji.native}
+                        </button>
+                    `).join('');
+                    console.log('Emojis displayed');
+                }
+                
+            } catch (error) {
+                console.error('Test error:', error);
+            }
+        }
+        
+        // Функция переключения категорий
+        async function switchCategory(categoryId) {
+            console.log('Switching to category:', categoryId);
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.category-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${categoryId}"]`).classList.add('active');
+            
+            // Загружаем эмодзи для категории
+            try {
+                const response = await fetch(`/api/wizard/emojis/category/${categoryId}`);
+                const data = await response.json();
+                console.log('Emojis loaded for category:', data.emojis.length);
+                
+                const emojisContainer = document.getElementById('allEmojis');
+                if (emojisContainer) {
+                    emojisContainer.innerHTML = data.emojis.map(emoji => `
+                        <button class="emoji-btn" title="${emoji.name}">
+                            ${emoji.native}
+                        </button>
+                    `).join('');
+                    console.log('Emojis displayed for category');
+                }
+            } catch (error) {
+                console.error('Error loading emojis for category:', error);
+            }
+        }
+        
+        // Функция поиска эмодзи
+        async function searchEmojis(query) {
+            if (!query.trim()) {
+                // Если поиск пустой, показываем эмодзи из активной категории
+                const activeCategory = document.querySelector('.category-tab.active');
+                if (activeCategory) {
+                    switchCategory(activeCategory.dataset.category);
+                }
+                return;
+            }
+            
+            console.log('Searching for:', query);
+            
+            try {
+                const response = await fetch(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                console.log('Search results:', data.emojis.length);
+                
+                const emojisContainer = document.getElementById('allEmojis');
+                if (emojisContainer) {
+                    if (data.emojis.length === 0) {
+                        emojisContainer.innerHTML = `
+                            <div class="emoji-empty">
+                                <i class="fas fa-search"></i>
+                                <p>Эмодзи не найдены для "${query}"</p>
+                            </div>
+                        `;
+                    } else {
+                        emojisContainer.innerHTML = data.emojis.map(emoji => `
+                            <button class="emoji-btn" title="${emoji.name}">
+                                ${emoji.native}
+                            </button>
+                        `).join('');
+                    }
+                    console.log('Search results displayed');
+                }
+            } catch (error) {
+                console.error('Error searching emojis:', error);
+            }
+        }
+        
+        // Обработчик поиска
+        document.addEventListener('DOMContentLoaded', function() {
+            testEmojiSystem();
+            
+            // Добавляем обработчик поиска
+            const searchInput = document.getElementById('emojiSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    searchEmojis(this.value);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

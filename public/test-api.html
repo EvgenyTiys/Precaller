@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест API</title>
+</head>
+<body>
+    <h1>Тест API</h1>
+    <button onclick="testAPI()">Тестировать API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Тестирование...';
+            
+            try {
+                // Сначала регистрируемся
+                const registerResponse = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'testpass123',
+                        email: 'test@example.com'
+                    })
+                });
+                
+                const registerData = await registerResponse.json();
+                console.log('Register response:', registerData);
+                
+                if (registerData.token) {
+                    // Тестируем API с токеном
+                    const emojiResponse = await fetch('/api/wizard/emojis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${registerData.token}`
+                        },
+                        body: JSON.stringify({
+                            fragmentText: 'Guten Tag'
+                        })
+                    });
+                    
+                    const emojiData = await emojiResponse.json();
+                    console.log('Emoji response:', emojiData);
+                    
+                    resultDiv.innerHTML = `
+                        <h3>Результат регистрации:</h3>
+                        <pre>${JSON.stringify(registerData, null, 2)}</pre>
+                        <h3>Результат поиска эмодзи:</h3>
+                        <pre>${JSON.stringify(emojiData, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>Ошибка регистрации:</h3>
+                        <pre>${JSON.stringify(registerData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<h3>Ошибка:</h3><pre>${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>

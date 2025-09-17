@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мастер запоминания</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/wizard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">Мастер запоминания</a>
+            </h1>
+            <nav class="nav">
+                <a href="/" class="nav-link">Главная</a>
+                <div class="user-menu" id="userMenu">
+                    <span class="username" id="username"></span>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Цепочка рассказа -->
+        <div class="story-chain" id="storyChain" style="display: none;">
+            <div class="container">
+                <div class="chain-line" id="chainLine">
+                    <!-- Смайлики будут добавляться динамически -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Индикатор прогресса -->
+            <div class="progress-indicator">
+                <div class="step" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-title">Маршрут</div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-title">Фрагменты</div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Ассоциации</div>
+                </div>
+            </div>
+
+            <!-- Шаг 1: Выбор маршрута -->
+            <div class="wizard-step" id="wizardStep1">
+                <h2>Шаг 1: Выберите маршрут для запоминания</h2>
+                
+                <div class="step-content">
+                    <div class="instruction">
+                        <p>Вспомните реальный маршрут, который вы хорошо знаете, и по которому вы <strong>не будете ходить</strong> до момента воспроизведения текста по памяти.</p>
+                        
+                        <div class="requirement">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Важно:</strong> Маршрут не должен пересекать сам себя.
+                            <span class="help-icon" data-tooltip="Такой маршрут нужен для запоминания переходов между фразами, т.к. мы обычно хорошо помним отдельные фразы, но часто забываем то, о чём мы хотели сказать дальше. Требование непересечения маршрутом самого себя и с маршрутом в реальном пространстве связано с тем, что наша пространственная память путает воображаемое и реальное и что нам легче запомнить только один объект в одной точке пространства.">
+                                <i class="fas fa-question-circle"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="route-visualization">
+                        <div class="route-tips">
+                            <h4>Советы по выбору маршрута:</h4>
+                            <ul>
+                                <li>Выбирайте знакомый маршрут с яркими ориентирами</li>
+                                <li>Маршрут должен иметь логическую последовательность</li>
+                                <li>Избегайте сложных развилок и пересечений</li>
+                                <li>Количество остановок должно соответствовать количеству фрагментов текста</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="route-instruction">
+                            <p><strong>Представьте в голове ваш маршрут</strong> - это поможет создать ассоциации для запоминания текста.</p>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="saveRoute">Перейти к разбиению на фрагменты</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 2: Разбиение на фрагменты -->
+            <div class="wizard-step" id="wizardStep2" style="display: none;">
+                <h2>Шаг 2: Разбейте текст на фрагменты</h2>
+                
+                <div class="step-content">
+                    <div class="instruction">
+                        <p>Разбейте текст на логические легко запоминаемые фрагменты (фразы, предложения, словосочетания или слова).</p>
+                        <p><strong>Кликните на иконки</strong> <i class="fas fa-cut" style="color: #667eea;"></i> рядом со знаками препинания, чтобы создать фрагменты. Текст от начала до выбранной иконки станет фрагментом.</p>
+                        <p>Иконки автоматически размещены после точек, запятых, двоеточий, тире и других знаков препинания.</p>
+                    </div>
+                    
+                    <div class="text-editor">
+                        <div class="text-content" id="textContent">
+                            <!-- Текст будет загружен динамически -->
+                        </div>
+                    </div>
+                    
+                    <div class="fragments-info">
+                        <p>Фрагментов создано: <span id="fragmentCount">0</span></p>
+                        <div class="fragments-list" id="fragmentsList">
+                            <!-- Список фрагментов будет обновляться динамически -->
+                        </div>
+                    </div>
+                    
+                    <div class="step-buttons">
+                        <button class="btn btn-secondary" id="backToStep1">Назад</button>
+                        <button class="btn btn-primary" id="proceedToStep3" disabled>Перейти к ассоциациям</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 3: Создание ассоциаций -->
+            <div class="wizard-step" id="wizardStep3" style="display: none;">
+                <h2>Шаг 3: Создайте ассоциации</h2>
+                
+                <div class="step-content">
+                    <div class="current-fragment">
+                        <div class="fragment-info">
+                            <span class="fragment-number">Фрагмент <span id="currentFragmentNumber">1</span> из <span id="totalFragments">0</span></span>
+                        </div>
+                        <div class="fragment-text" id="currentFragmentText">
+                            <!-- Текст текущего фрагмента -->
+                        </div>
+                        <div class="fragment-edit" id="currentFragmentEdit" style="display: none; margin-top: 0.75rem;">
+                            <textarea id="fragmentEditArea" rows="4" style="width: 100%;"></textarea>
+                            <div class="step-buttons" style="margin-top: 0.5rem;">
+                                <button class="btn btn-primary" id="saveFragmentEdit">Сохранить</button>
+                                <button class="btn btn-secondary" id="cancelFragmentEdit">Отмена</button>
+                            </div>
+                        </div>
+                        <div class="fragment-actions" style="margin-top: 0.75rem;">
+                            <button class="btn btn-secondary" id="editFragmentBtn">Редактировать текст</button>
+                        </div>
+                    </div>
+                    
+                    <div class="association-instruction">
+                        <p id="associationInstruction">Разместите какой-то предмет в начале воображаемого маршрута.</p>
+                    </div>
+                    
+                    <div class="emoji-selection">
+                        <h4>Выберите подходящий смайлик:</h4>
+                        <div class="suggested-emojis" id="suggestedEmojis">
+                            <!-- Предложенные смайлики будут загружены динамически -->
+                        </div>
+                        
+                        <div class="other-options">
+                            <button class="btn btn-secondary" id="showAllEmojis">Другое</button>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-association" id="customAssociation" style="display: none;">
+                        <div class="custom-tabs">
+                            <button class="tab-btn active" data-tab="emoji">Смайлик</button>
+                            <button class="tab-btn" data-tab="image">Изображение</button>
+                            <button class="tab-btn" data-tab="word">Слово</button>
+                        </div>
+                        
+                        <div class="tab-content" id="emojiTab">
+                            <div class="all-emojis" id="allEmojis">
+                                <!-- Все смайлики будут загружены динамически -->
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="imageTab" style="display: none;">
+                            <div class="image-upload">
+                                <p>Вставьте изображение из буфера обмена:</p>
+                                <div class="image-drop-zone" id="imageDropZone">
+                                    <i class="fas fa-image"></i>
+                                    <p>Нажмите Ctrl+V для вставки изображения</p>
+                                </div>
+                                <canvas id="imageCanvas" style="display: none;"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="wordTab" style="display: none;">
+                            <div class="word-input">
+                                <label for="customWord">Введите слово или фразу:</label>
+                                <input type="text" id="customWord" placeholder="Например: красный мяч">
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="confirmCustom">Готово</button>
+                    </div>
+                    
+                    <div class="step-buttons">
+                        <button class="btn btn-secondary" id="backToStep2">Назад к фрагментам</button>
+                        <button class="btn btn-success" id="finishWizard" style="display: none;">Завершить мастер</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальные окна -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Всплывающие подсказки -->
+    <div class="tooltip" id="tooltip">
+        <div class="tooltip-content" id="tooltipContent"></div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/rangy-utils.js"></script>
+    <script src="/js/wizard.js?v=13"></script>
+</body>
+</html>
