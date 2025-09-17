@@ -199,6 +199,10 @@ const emojiDatabase = {
     '🔭': { ru: ['телескоп'], de: ['teleskop'], en: ['telescope'] },
     '📡': { ru: ['антенна'], de: ['antenne'], en: ['antenna'] },
     
+    // Быт и ванная
+    '🛁': { ru: ['ванна', 'ванная', 'баня', 'купание'], de: ['badewanne', 'bad', 'baden'], en: ['bathtub', 'bath', 'bathe'] },
+    '🛀': { ru: ['ванна', 'ванная', 'купание', 'принять ванну'], de: ['baden', 'bad', 'badewanne'], en: ['bath', 'bathe', 'bathtub', 'taking a bath'] },
+    
     // Спорт и игры
     '⚽': { ru: ['футбол'], de: ['fußball'], en: ['soccer'] },
     '🏀': { ru: ['баскетбол'], de: ['basketball'], en: ['basketball'] },

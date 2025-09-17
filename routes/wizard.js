@@ -8,7 +8,7 @@ const {
     getRandomEmojis: getRandomEmojisMart,
     getEmojisWithTranslations 
 } = require('../models/emojiMartDatabase');
-const { findEmojisForText: findEmojisByTranslation } = require('../models/offlineTranslationService');
+// Функции перевода/поиска для de будут подгружаться динамически с инвалидацией кэша
 const router = express.Router();
 
 // Сохранение маршрута пользователя (Шаг 1)
@@ -58,7 +58,12 @@ router.post('/emojis', authenticateToken, async (req, res) => {
         }
 
         // Поиск смайликов для текста с новым алгоритмом
-        let emojis = await findEmojisByTranslation(fragmentText, 10);
+        let emojis = [];
+        try {
+            delete require.cache[require.resolve('../models/offlineTranslationService')];
+        } catch (e) {}
+        const { findEmojisForText: findEmojisByTranslation } = require('../models/offlineTranslationService');
+        emojis = await findEmojisByTranslation(fragmentText, 10);
         
         // Если ничего не найдено, добавляем случайные смайлики
         if (emojis.length === 0) {
@@ -156,6 +161,10 @@ router.get('/emojis/search', async (req, res) => {
 
         if (lang === 'ru') {
             // Прямой поиск: сначала через findEmojisForText (ru), затем фолбэк подстроками
+            // Обновляем кэш модуля, чтобы подхватывались свежие изменения без рестарта
+            try {
+                delete require.cache[require.resolve('../models/emojiDatabase')];
+            } catch (e) {}
             const { emojiDatabase, findEmojisForText } = require('../models/emojiDatabase');
             const needle = (q || '').toLowerCase().trim();
             let ruList = [];
@@ -169,10 +178,12 @@ router.get('/emojis/search', async (req, res) => {
                     keywords: item.translations || [],
                     category: 'misc'
                 }));
+                console.log(`[emoji-search][ru] direct=${direct.length}`);
             } catch(e) {
                 console.error('[emoji-search] findEmojisForText error:', e.message);
             }
 
+            let fallbackAdds = 0;
             for (const [emoji, tr] of Object.entries(emojiDatabase)) {
                 const ruWords = (tr && tr.ru) ? tr.ru : [];
                 if (ruWords.some(w => {
@@ -186,11 +197,36 @@ router.get('/emojis/search', async (req, res) => {
                         keywords: ruWords,
                         category: tr.category || 'misc'
                     });
+                    fallbackAdds++;
                 }
             }
+            console.log(`[emoji-search][ru] fallbackAdds=${fallbackAdds}`);
+
+            // Дополнительный фолбэк: простая карта ru->en для Emoji Mart (частные случаи)
+            if (ruList.length === 0) {
+                const ruToEn = {
+                    'ванна': 'bathtub',
+                    'ванная': 'bathtub',
+                    'баня': 'bath',
+                    'купание': 'bath'
+                };
+                const mapped = ruToEn[needle];
+                if (mapped) {
+                    const mart = searchEmojis(mapped, 'en');
+                    if (Array.isArray(mart) && mart.length) {
+                        console.log(`[emoji-search][ru] ru->en fallback for "${needle}" -> "${mapped}", mart=${mart.length}`);
+                        ruList = ruList.concat(mart);
+                    }
+                }
+            }
+
             results = ruList.slice(0, 50);
         } else if (lang === 'de') {
-            // Немецкий — используем переводческий сервис
+            // Немецкий — используем переводческий сервис + всегда добавляем прямой поиск по Emoji Mart (en)
+            try {
+                delete require.cache[require.resolve('../models/offlineTranslationService')];
+            } catch (e) {}
+            const { findEmojisForText: findEmojisByTranslation } = require('../models/offlineTranslationService');
             const emojis = await findEmojisByTranslation(q, 24);
             results = emojis.map(e => ({
                 id: e.id || e.native || e.emoji || e.name,
@@ -199,6 +235,12 @@ router.get('/emojis/search', async (req, res) => {
                 keywords: e.keywords || [],
                 category: e.category || 'misc'
             }));
+
+            // Добавляем результаты прямого поиска по Emoji Mart (англ.) для повышения отзывчивости
+            const mart = searchEmojis(q, 'en');
+            if (Array.isArray(mart) && mart.length) {
+                results = results.concat(mart);
+            }
         } else {
             // Английский и прочие языки — прямой поиск по Emoji Mart
             results = searchEmojis(q, 'en');
@@ -288,7 +330,10 @@ router.get('/emojis/translate', async (req, res) => {
         }
         
         console.log(`Searching emojis for text: "${text}"`);
-        
+        try {
+            delete require.cache[require.resolve('../models/offlineTranslationService')];
+        } catch (e) {}
+        const { findEmojisForText: findEmojisByTranslation } = require('../models/offlineTranslationService');
         const emojis = await findEmojisByTranslation(text, parseInt(maxEmojis));
         
         res.json({

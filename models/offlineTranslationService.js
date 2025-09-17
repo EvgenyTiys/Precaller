@@ -47,6 +47,9 @@ const germanEnglishDict = {
     'schwarz': 'black', 'weiß': 'white', 'grau': 'gray', 'braun': 'brown',
     'orange': 'orange', 'lila': 'purple', 'rosa': 'pink',
     
+    // Ванная / гигиена
+    'bad': 'bath', 'badewanne': 'bathtub', 'badezimmer': 'bathroom',
+    
     // Животные
     'hund': 'dog', 'katze': 'cat', 'pferd': 'horse', 'kuh': 'cow',
     'schwein': 'pig', 'huhn': 'chicken', 'vogel': 'bird', 'fisch': 'fish',

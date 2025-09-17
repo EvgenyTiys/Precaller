@@ -1162,9 +1162,10 @@ async function searchEmojis(query) {
     `;
     
     try {
-        // Определяем язык по вводу: если есть кириллица — используем ru, иначе язык текста
+        // Определяем язык по вводу: если есть кириллица — используем ru,
+        // иначе: если язык текущего текста немецкий — используем de, иначе en
         const isCyrillic = /[А-Яа-яЁё]/.test(query);
-        const lang = isCyrillic ? 'ru' : ((currentText && currentText.language) ? currentText.language : 'en');
+        const lang = isCyrillic ? 'ru' : ((currentText && currentText.language === 'de') ? 'de' : 'en');
         const response = await window.app.apiRequest(`/api/wizard/emojis/search?q=${encodeURIComponent(query)}&language=${encodeURIComponent(lang)}`);
         const emojis = response.emojis;
         
