@@ -104,6 +104,42 @@ router.post('/associate', authenticateToken, (req, res) => {
     }
 });
 
+// Обновление текста фрагмента и сброс ассоциаций
+router.post('/fragment/update', authenticateToken, (req, res) => {
+    try {
+        const { fragmentId, content } = req.body;
+        const userId = req.user.id;
+
+        if (!fragmentId || !content || !content.trim()) {
+            return res.status(400).json({ error: 'ID фрагмента и новый текст обязательны' });
+        }
+
+        // Проверяем, что фрагмент существует и принадлежит пользователю через текст
+        req.db.getFragmentById(fragmentId, (err, fragment) => {
+            if (err || !fragment) {
+                return res.status(404).json({ error: 'Фрагмент не найден' });
+            }
+
+            req.db.getTextById(fragment.text_id, (err2, text) => {
+                if (err2 || !text || text.user_id !== userId) {
+                    return res.status(403).json({ error: 'Нет доступа к этому фрагменту' });
+                }
+
+                req.db.updateFragmentContent(fragmentId, content.trim(), (err3) => {
+                    if (err3) {
+                        console.error('Ошибка обновления фрагмента:', err3);
+                        return res.status(500).json({ error: 'Ошибка обновления фрагмента' });
+                    }
+                    return res.json({ message: 'Фрагмент обновлён' });
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка обновления фрагмента:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
 // Получение всех смайликов из базы данных для выбора
 router.get('/all-emojis', authenticateToken, (req, res) => {
     try {

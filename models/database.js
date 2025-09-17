@@ -149,9 +149,19 @@ class Database {
         });
     }
 
+    getFragmentById(fragmentId, callback) {
+        const query = `SELECT * FROM text_fragments WHERE id = ?`;
+        this.db.get(query, [fragmentId], callback);
+    }
+
     updateFragmentAssociation(fragmentId, emoji, customImage, customWord, callback) {
         const query = `UPDATE text_fragments SET emoji = ?, custom_image = ?, custom_word = ? WHERE id = ?`;
         this.db.run(query, [emoji, customImage, customWord, fragmentId], callback);
+    }
+
+    updateFragmentContent(fragmentId, newContent, callback) {
+        const query = `UPDATE text_fragments SET content = ? WHERE id = ?`;
+        this.db.run(query, [newContent, fragmentId], callback);
     }
 
     getFragmentsByTextId(textId, callback) {

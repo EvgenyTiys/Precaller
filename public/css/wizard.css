@@ -329,15 +329,38 @@
 
 .fragment-info {
     margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .fragment-number {
     background: #28a745;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: bold;
+    color: #fff;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+/* Специальные стили для индикатора текущего фрагмента на шаге 3,
+   чтобы не наследовать фиксированные размеры кружков из списка фрагментов */
+.current-fragment .fragment-number {
+    width: auto;
+    height: auto;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: #28a745;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
 #currentFragmentText {

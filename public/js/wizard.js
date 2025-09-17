@@ -97,6 +97,43 @@ function initializeWizardHandlers() {
     if (finishWizard) {
         finishWizard.addEventListener('click', handleFinishWizard);
     }
+
+    // Редактирование текущего фрагмента (Шаг 3)
+    const editFragmentBtn = document.getElementById('editFragmentBtn');
+    const saveFragmentEdit = document.getElementById('saveFragmentEdit');
+    const cancelFragmentEdit = document.getElementById('cancelFragmentEdit');
+    const fragmentEditArea = document.getElementById('fragmentEditArea');
+    const currentFragmentEdit = document.getElementById('currentFragmentEdit');
+    const currentFragmentText = document.getElementById('currentFragmentText');
+
+    if (editFragmentBtn && currentFragmentEdit && fragmentEditArea && currentFragmentText) {
+        editFragmentBtn.addEventListener('click', () => {
+            const fragment = currentFragments[currentFragmentIndex];
+            fragmentEditArea.value = fragment ? fragment.content : '';
+            currentFragmentText.style.display = 'none';
+            currentFragmentEdit.style.display = 'block';
+            fragmentEditArea.focus();
+        });
+    }
+
+    if (cancelFragmentEdit && currentFragmentEdit && currentFragmentText) {
+        cancelFragmentEdit.addEventListener('click', () => {
+            currentFragmentEdit.style.display = 'none';
+            currentFragmentText.style.display = 'block';
+        });
+    }
+
+    if (saveFragmentEdit && fragmentEditArea) {
+        saveFragmentEdit.addEventListener('click', async () => {
+            await saveCurrentFragmentEdit(fragmentEditArea.value);
+        });
+        fragmentEditArea.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || !e.shiftKey)) {
+                e.preventDefault();
+                await saveCurrentFragmentEdit(fragmentEditArea.value);
+            }
+        });
+    }
     
     // Кнопка "Другое"
     const showAllEmojis = document.getElementById('showAllEmojis');
@@ -662,16 +699,29 @@ async function initializeStep3() {
     // Загружаем существующие ассоциации в цепочку
     loadExistingAssociations();
     
-    // Находим первый фрагмент без ассоциации или устанавливаем первый как редактируемый
-    const firstEmptyIndex = findFirstEmptyAssociation();
-    if (firstEmptyIndex >= 0) {
-        // Есть пустые ассоциации - начинаем с первой пустой
-        currentFragmentIndex = firstEmptyIndex;
-        activeEmojiPosition = -1; // Режим новой позиции
+    // Пытаемся восстановить фрагмент после перезагрузки
+    let restoredIndex = -1;
+    try {
+        const stored = localStorage.getItem('wizardReturnFragmentIndex');
+        if (stored !== null) {
+            restoredIndex = parseInt(stored, 10);
+            localStorage.removeItem('wizardReturnFragmentIndex');
+        }
+    } catch (e) {}
+
+    if (restoredIndex >= 0 && restoredIndex < currentFragments.length) {
+        currentFragmentIndex = restoredIndex;
+        activeEmojiPosition = -1; // остаёмся на этом фрагменте, новая ассоциация
     } else {
-        // Все ассоциации заполнены - выделяем первую для редактирования
-        currentFragmentIndex = 0;
-        activeEmojiPosition = 0; // Режим редактирования первой
+        // Находим первый фрагмент без ассоциации или устанавливаем первый как редактируемый
+        const firstEmptyIndex = findFirstEmptyAssociation();
+        if (firstEmptyIndex >= 0) {
+            currentFragmentIndex = firstEmptyIndex;
+            activeEmojiPosition = -1; // Режим новой позиции
+        } else {
+            currentFragmentIndex = 0;
+            activeEmojiPosition = 0; // Режим редактирования первой
+        }
     }
     
     updateChainDisplay();
@@ -697,17 +747,21 @@ function loadExistingAssociations() {
     // Очищаем существующую цепочку
     chainLine.innerHTML = '';
     
-    // Добавляем существующие ассоциации
+    // Создаём фиксированные слоты для каждого фрагмента, чтобы сохранять порядок
     currentFragments.forEach((fragment, index) => {
+        const chainEmoji = document.createElement('div');
+        chainEmoji.className = 'chain-emoji';
+        chainEmoji.dataset.fragmentIndex = index;
+        chainEmoji.onclick = () => editFragmentAssociation(index);
+        
         if (fragment.emoji || fragment.custom_word || fragment.custom_image) {
             const association = fragment.emoji || fragment.custom_word || '🖼️';
-            const chainEmoji = document.createElement('div');
-            chainEmoji.className = 'chain-emoji';
             chainEmoji.textContent = association;
-            chainEmoji.onclick = () => editFragmentAssociation(index);
-            chainEmoji.dataset.fragmentIndex = index;
-            chainLine.appendChild(chainEmoji);
+        } else {
+            chainEmoji.classList.add('empty');
+            chainEmoji.textContent = '';
         }
+        chainLine.appendChild(chainEmoji);
     });
 }
 
@@ -758,6 +812,15 @@ async function showCurrentFragment() {
     if (currentFragmentText) {
         currentFragmentText.textContent = fragment.content;
     }
+    // При каждом показе сбрасываем режим редактирования
+    const currentFragmentEdit = document.getElementById('currentFragmentEdit');
+    if (currentFragmentEdit) {
+        currentFragmentEdit.style.display = 'none';
+    }
+    const currentFragmentTextEl = document.getElementById('currentFragmentText');
+    if (currentFragmentTextEl) {
+        currentFragmentTextEl.style.display = 'block';
+    }
     
     if (associationInstruction) {
         if (activeEmojiPosition >= 0) {
@@ -774,6 +837,72 @@ async function showCurrentFragment() {
     
     // Скрываем пользовательские ассоциации
     hideCustomAssociation();
+}
+
+// Сохранение изменений текущего фрагмента и перезагрузка страницы
+async function saveCurrentFragmentEdit(newContent) {
+    try {
+        const trimmed = (newContent || '').trim();
+        if (!trimmed) {
+            window.app.showNotification('Текст фрагмента не может быть пустым', 'error');
+            return;
+        }
+
+        const fragment = currentFragments[currentFragmentIndex];
+        if (!fragment) {
+            window.app.showNotification('Не удалось определить фрагмент', 'error');
+            return;
+        }
+
+        window.app.showLoader();
+
+        // Обновляем фрагмент на сервере; ассоциации сбрасываем, чтобы подбор шёл заново
+        await window.app.apiRequest('/api/wizard/fragment/update', {
+            method: 'POST',
+            body: JSON.stringify({
+                fragmentId: fragment.id,
+                content: trimmed
+            })
+        });
+
+        // Запоминаем индекс фрагмента, чтобы вернуться к нему после перезагрузки
+        try {
+            localStorage.setItem('wizardReturnFragmentIndex', String(currentFragmentIndex));
+        } catch (e) {}
+
+        window.app.showNotification('Фрагмент сохранён. Обновляем страницу...', 'success');
+        // Вместо полной перезагрузки — перезагружаем данные и остаёмся на фрагменте
+        const refreshed = await window.app.apiRequest(`/api/wizard/text/${currentTextId}`);
+        currentText = refreshed.text;
+        currentFragments = (refreshed.fragments || []).map(f => ({
+            id: f.id,
+            fragment_order: f.fragment_order,
+            content: f.content,
+            start_position: f.start_position,
+            end_position: f.end_position,
+            emoji: f.emoji || null,
+            custom_word: f.custom_word || null,
+            custom_image: f.custom_image || null
+        }));
+
+        // Убедимся, что индекс в пределах
+        if (currentFragmentIndex >= currentFragments.length) {
+            currentFragmentIndex = Math.max(0, currentFragments.length - 1);
+        }
+
+        // После сохранения остаёмся на текущем фрагменте и подсвечиваем его слот (курсор не должен прыгать)
+        activeEmojiPosition = currentFragmentIndex;
+
+        // Обновим цепочку и UI шага 3
+        loadExistingAssociations();
+        updateChainDisplay();
+        showCurrentFragment();
+    } catch (error) {
+        console.error('Save fragment edit error:', error);
+        window.app.showNotification(error.message || 'Ошибка сохранения фрагмента', 'error');
+    } finally {
+        window.app.hideLoader();
+    }
 }
 
 // Загрузка предложенных смайликов
@@ -845,11 +974,12 @@ async function selectEmoji(emoji, name) {
         fragment.custom_image = null;
         
         const chainLine = document.getElementById('chainLine');
-        const chainEmojis = chainLine.querySelectorAll('.chain-emoji');
+        const targetSlot = chainLine.querySelector(`.chain-emoji[data-fragment-index="${currentFragmentIndex}"]`);
         
-        if (activeEmojiPosition >= 0 && activeEmojiPosition < chainEmojis.length) {
-            // Заменяем существующий смайлик
-            chainEmojis[activeEmojiPosition].textContent = emoji;
+        if (activeEmojiPosition >= 0 && targetSlot) {
+            // Редактирование: заменяем в слоте текущего фрагмента
+            targetSlot.textContent = emoji;
+            targetSlot.classList.remove('empty');
             
             // Ищем следующую незаполненную позицию
             const nextEmptyIndex = findFirstEmptyAssociation();
@@ -859,7 +989,7 @@ async function selectEmoji(emoji, name) {
                 currentFragmentIndex = nextEmptyIndex;
             } else {
                 // Все заполнены - остаемся в режиме редактирования, переходим к следующему
-                const nextIndex = (activeEmojiPosition + 1) % currentFragments.length;
+                const nextIndex = (currentFragmentIndex + 1) % currentFragments.length;
                 activeEmojiPosition = nextIndex;
                 currentFragmentIndex = nextIndex;
             }
@@ -909,13 +1039,20 @@ function addToStoryChain(association, fragmentIndex) {
     const chainLine = document.getElementById('chainLine');
     if (!chainLine) return;
     
-    const chainEmoji = document.createElement('div');
-    chainEmoji.className = 'chain-emoji';
-    chainEmoji.textContent = association;
-    chainEmoji.onclick = () => editFragmentAssociation(fragmentIndex);
-    chainEmoji.dataset.fragmentIndex = fragmentIndex;
-    
-    chainLine.appendChild(chainEmoji);
+    // Обновляем существующий слот вместо добавления в конец
+    const existingSlot = chainLine.querySelector(`.chain-emoji[data-fragment-index="${fragmentIndex}"]`);
+    if (existingSlot) {
+        existingSlot.textContent = association;
+        existingSlot.classList.remove('empty');
+    } else {
+        // На всякий случай создаём, если нет
+        const chainEmoji = document.createElement('div');
+        chainEmoji.className = 'chain-emoji';
+        chainEmoji.textContent = association;
+        chainEmoji.onclick = () => editFragmentAssociation(fragmentIndex);
+        chainEmoji.dataset.fragmentIndex = fragmentIndex;
+        chainLine.appendChild(chainEmoji);
+    }
     updateChainDisplay();
 }
 
@@ -946,16 +1083,29 @@ function updateChainDisplay() {
         // Редактирование существующего смайлика: ищем по индексу фрагмента,
         // а не по порядку элементов в DOM
         const targetEmoji = chainLine.querySelector(`.chain-emoji[data-fragment-index="${activeEmojiPosition}"]`);
-        targetEmoji.classList.add('active');
-        ring.classList.add('editing');
-        ring.style.display = 'none'; // Скрываем кольцо, так как подсвечиваем сам смайлик
-    } else {
-        // Новая позиция - показываем пустое кольцо
+        if (targetEmoji) {
+            targetEmoji.classList.add('active');
+            ring.classList.add('editing');
+            ring.style.display = 'none'; // Скрываем кольцо, так как подсвечиваем сам смайлик
+        } else {
+            // Эмодзи для этой позиции отсутствует (например, после сброса ассоциации)
+            activeEmojiPosition = -1;
+        }
+    }
+
+    if (activeEmojiPosition < 0) {
+        // Новая позиция - показываем пустое кольцо у текущего фрагмента (а не в конце)
         ring.classList.add('empty');
         ring.onclick = () => {
             // При клике на пустое кольцо ничего не делаем
         };
-        chainLine.appendChild(ring);
+        const ringIndex = Math.min(Math.max(currentFragmentIndex, 0), totalFragments);
+        const targetSlot = chainLine.querySelector(`.chain-emoji[data-fragment-index="${ringIndex}"]`);
+        if (targetSlot) {
+            chainLine.insertBefore(ring, targetSlot);
+        } else {
+            chainLine.appendChild(ring);
+        }
     }
 }
 
