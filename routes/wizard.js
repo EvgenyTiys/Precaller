@@ -81,25 +81,54 @@ router.post('/emojis', authenticateToken, async (req, res) => {
 router.post('/associate', authenticateToken, (req, res) => {
     try {
         const { fragmentId, emoji, customImage, customWord } = req.body;
+        console.log('=== ASSOCIATE REQUEST ===');
+        console.log('Fragment ID:', fragmentId);
+        console.log('Emoji:', emoji);
+        console.log('Custom Image length:', customImage ? customImage.length : 0);
+        console.log('Custom Word:', customWord);
+        console.log('User ID:', req.user.id);
 
         if (!fragmentId) {
+            console.log('ERROR: Fragment ID missing');
             return res.status(400).json({ error: 'ID фрагмента обязателен' });
         }
 
         if (!emoji && !customImage && !customWord) {
+            console.log('ERROR: No association data provided');
             return res.status(400).json({ error: 'Необходимо выбрать смайлик, изображение или ввести слово' });
         }
 
-        req.db.updateFragmentAssociation(fragmentId, emoji, customImage, customWord, (err) => {
+        // Сначала проверим, существует ли фрагмент
+        req.db.getFragmentById(fragmentId, (err, fragment) => {
             if (err) {
-                console.error('Ошибка сохранения ассоциации:', err);
-                return res.status(500).json({ error: 'Ошибка сохранения ассоциации' });
+                console.error('ERROR: Database error getting fragment:', err);
+                return res.status(500).json({ error: 'Ошибка получения фрагмента' });
             }
 
-            res.json({ message: 'Ассоциация успешно сохранена' });
+            if (!fragment) {
+                console.error('ERROR: Fragment not found with ID:', fragmentId);
+                return res.status(404).json({ error: 'Фрагмент не найден' });
+            }
+
+            console.log('SUCCESS: Fragment found:', {
+                id: fragment.id,
+                content: fragment.content ? fragment.content.substring(0, 50) + '...' : 'no content',
+                text_id: fragment.text_id
+            });
+
+            req.db.updateFragmentAssociation(fragmentId, emoji, customImage, customWord, (err) => {
+                if (err) {
+                    console.error('ERROR: Failed to save association:', err);
+                    return res.status(500).json({ error: 'Ошибка сохранения ассоциации' });
+                }
+
+                console.log('SUCCESS: Association saved for fragment:', fragmentId);
+                console.log('=== ASSOCIATE REQUEST COMPLETE ===');
+                res.json({ message: 'Ассоциация успешно сохранена' });
+            });
         });
     } catch (error) {
-        console.error('Ошибка сохранения ассоциации:', error);
+        console.error('ERROR: Exception in associate route:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });

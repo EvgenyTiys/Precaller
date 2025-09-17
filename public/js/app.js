@@ -221,6 +221,16 @@ async function apiRequest(url, options = {}) {
     
     try {
         const response = await fetch(url, mergedOptions);
+        
+        // Проверяем, что ответ действительно JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('Server returned non-JSON response:', contentType);
+            const text = await response.text();
+            console.error('Response text:', text);
+            throw new Error('Сервер вернул неверный формат данных');
+        }
+        
         const data = await response.json();
         
         if (!response.ok) {

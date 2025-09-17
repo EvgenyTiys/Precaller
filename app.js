@@ -22,8 +22,8 @@ const db = new Database();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' })); // Увеличиваем лимит для изображений
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 // Настройка статических файлов с заголовками для предотвращения кэширования JS
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -71,6 +71,11 @@ app.get('/test-emoji.html', (req, res) => {
 // Страница авторизации
 app.get('/auth', (req, res) => {
     res.render('auth', { title: 'Авторизация - Приложение для запоминания текстов' });
+});
+
+// Страница мастера запоминания
+app.get('/wizard', (req, res) => {
+    res.render('wizard', { title: 'Мастер запоминания' });
 });
 
 // Обработка 404

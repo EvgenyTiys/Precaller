@@ -190,6 +190,15 @@ async function loadTextData() {
             showStep(2);
         } else {
             showStep(3);
+            // Добавляем вызов initializeStep3() для случая, когда фрагменты уже существуют
+            // Но сначала убеждаемся, что фрагменты правильно загружены
+            if (currentFragments.length > 0) {
+                initializeStep3();
+            } else {
+                // Если фрагменты не загружены, попробуем загрузить их заново
+                console.log('No fragments found, reloading...');
+                loadTextData();
+            }
         }
         
         // Заполняем данные в формы
@@ -443,8 +452,6 @@ function updateMarkersAfterFragment() {
 
 // Отображение фрагментов
 function displayFragments() {
-    console.log('displayFragments called with fragments:', textFragments.length);
-    
     const textContent = document.getElementById('textContent');
     const fullText = currentText.content;
     let html = '';
@@ -466,7 +473,6 @@ function displayFragments() {
         ];
         const color = colors[colorIndex - 1];
         
-        console.log(`Creating fragment ${index} with color: ${color.bg}`);
         const isLast = index === (textFragments.length - 1);
         const actionBtn = isLast
             ? `<button class="fragment-edit-btn" onclick="undoLastFragment()" title="Отменить последний фрагмент">🗑️</button>`
@@ -475,7 +481,6 @@ function displayFragments() {
             ${escapeHtml(fragment.content)}
             ${actionBtn}
         </span>`;
-        console.log('Fragment HTML:', fragmentHtml);
         html += fragmentHtml;
         
         lastPosition = fragment.endPos;
@@ -487,16 +492,7 @@ function displayFragments() {
         html += addMarkersToText(remainingText, lastPosition);
     }
     
-    console.log('Setting innerHTML with length:', html.length);
     textContent.innerHTML = html;
-    console.log('innerHTML set, checking for fragments...');
-    
-    // Проверяем, что фрагменты действительно созданы
-    const createdFragments = textContent.querySelectorAll('.text-fragment');
-    console.log('Found fragments in DOM:', createdFragments.length);
-    createdFragments.forEach((frag, i) => {
-        console.log(`Fragment ${i}:`, frag.outerHTML.substring(0, 100) + '...');
-    });
 }
 
 // Добавление маркеров к тексту
@@ -573,10 +569,10 @@ function displayExistingFragments() {
     displayFragments();
     updateFragmentInfo();
     
-    // Автоматически ищем эмодзи для фрагментов
-    setTimeout(() => {
-        autoFindEmojisForFragments();
-    }, 1000); // Задержка для полной загрузки DOM
+    // Автоматически ищем эмодзи для фрагментов (временно отключено для отладки)
+    // setTimeout(() => {
+    //     autoFindEmojisForFragments();
+    // }, 1000); // Задержка для полной загрузки DOM
     
     const proceedBtn = document.getElementById('proceedToStep3');
     if (proceedBtn) {
@@ -691,6 +687,18 @@ async function initializeStep3() {
     const storyChain = document.getElementById('storyChain');
     if (storyChain) {
         storyChain.style.display = 'block';
+    }
+    
+    // Проверяем, есть ли локальные фрагменты, которые нужно сохранить
+    if (textFragments.length > 0 && currentFragments.length === 0) {
+        console.log('Saving local fragments before step 3...');
+        try {
+            await saveFragments();
+        } catch (error) {
+            console.error('Error saving fragments:', error);
+            window.app.showNotification('Ошибка сохранения фрагментов', 'error');
+            return;
+        }
     }
     
     // Загружаем все смайлики
@@ -959,6 +967,11 @@ async function loadSuggestedEmojis(fragmentText) {
 async function selectEmoji(emoji, name) {
     try {
         const fragment = currentFragments[currentFragmentIndex];
+        
+        if (!fragment || !fragment.id) {
+            window.app.showNotification('Фрагмент не найден. Попробуйте обновить страницу.', 'error');
+            return;
+        }
         
         await window.app.apiRequest('/api/wizard/associate', {
             method: 'POST',
@@ -1381,8 +1394,8 @@ function switchTab(tabName) {
 
 // Обработка вставки изображения
 function handleImagePaste(event) {
-    const activeTab = document.querySelector('.tab-content[style*="block"]');
-    if (!activeTab || activeTab.id !== 'imageTab') return;
+    const imageTab = document.getElementById('imageTab');
+    if (!imageTab || imageTab.style.display === 'none') return;
     
     const items = event.clipboardData.items;
     
@@ -1403,8 +1416,8 @@ function displayPastedImage(blob) {
     
     img.onload = function() {
         // Масштабируем изображение
-        const maxWidth = 300;
-        const maxHeight = 200;
+        const maxWidth = 200;
+        const maxHeight = 150;
         let { width, height } = img;
         
         if (width > maxWidth) {
@@ -1423,8 +1436,18 @@ function displayPastedImage(blob) {
         ctx.drawImage(img, 0, 0, width, height);
         canvas.style.display = 'block';
         
-        // Сохраняем изображение
-        window.selectedCustomImage = canvas.toDataURL();
+        // Сохраняем изображение с качеством 0.7 для уменьшения размера
+        const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+        console.log('Image data URL length:', dataURL.length);
+        
+        // Проверяем размер изображения
+        if (dataURL.length > 100000) { // 100KB
+            window.app.showNotification('Изображение слишком большое. Попробуйте изображение меньшего размера.', 'error');
+            return;
+        }
+        
+        window.selectedCustomImage = dataURL;
+        console.log('Image saved, length:', dataURL.length);
     };
     
     img.src = URL.createObjectURL(blob);
@@ -1432,7 +1455,13 @@ function displayPastedImage(blob) {
 
 // Обработка пользовательской ассоциации
 async function handleCustomAssociation() {
-    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+    const activeTabBtn = document.querySelector('.tab-btn.active');
+    if (!activeTabBtn) {
+        window.app.showNotification('Выберите тип ассоциации', 'error');
+        return;
+    }
+    
+    const activeTab = activeTabBtn.dataset.tab;
     let associationData = {};
     
     if (activeTab === 'emoji' && window.selectedCustomEmoji) {
@@ -1451,8 +1480,20 @@ async function handleCustomAssociation() {
         return;
     }
     
+    console.log('Saving association:', associationData);
+    
     try {
         const fragment = currentFragments[currentFragmentIndex];
+        console.log('Current fragment index:', currentFragmentIndex);
+        console.log('Total fragments:', currentFragments.length);
+        console.log('Fragment:', fragment);
+        console.log('Fragment ID:', fragment ? fragment.id : 'undefined');
+        
+        if (!fragment || !fragment.id) {
+            console.error('Fragment not found or missing ID:', fragment);
+            window.app.showNotification('Фрагмент не найден. Попробуйте обновить страницу.', 'error');
+            return;
+        }
         
         await window.app.apiRequest('/api/wizard/associate', {
             method: 'POST',
