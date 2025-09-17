@@ -115,6 +115,13 @@ class Database {
         this.db.get(query, [textId], callback);
     }
 
+    updateText(textId, title, callback) {
+        const query = `UPDATE texts SET title = ? WHERE id = ?`;
+        this.db.run(query, [title, textId], function(err) {
+            callback(err, this.changes);
+        });
+    }
+
     // Удаление текста и всех связанных данных
     deleteText(textId, callback) {
         // Сначала удаляем фрагменты

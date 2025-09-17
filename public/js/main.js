@@ -246,7 +246,12 @@ async function loadUserTexts() {
             const escapedTitle = escapeHtml(text.title);
             return `
                 <div class="text-item">
-                    <h3>${escapedTitle}</h3>
+                    <h3>
+                        <div class="text-title-container">
+                            <span class="text-title-display">${escapedTitle}</span>
+                            <i class="fas fa-edit edit-title-icon" onclick="startEditTitle(${text.id}, '${escapedTitle.replace(/'/g, "\\'")}')" title="Редактировать название"></i>
+                        </div>
+                    </h3>
                     <div class="text-meta">
                         <span>Язык: ${getLanguageName(text.language)}</span>
                         <span>Создан: ${window.app.formatDate(text.created_at)}</span>
@@ -524,4 +529,128 @@ if (!document.querySelector('#text-modal-styles')) {
         }
     `;
     document.head.appendChild(styles);
+}
+
+// Функция для начала редактирования названия текста
+function startEditTitle(textId, currentTitle) {
+    const textItem = document.querySelector(`[onclick*="startEditTitle(${textId}"]`).closest('.text-item');
+    const titleContainer = textItem.querySelector('.text-title-container');
+    
+    // Создаем форму редактирования
+    titleContainer.innerHTML = `
+        <input type="text" class="title-edit-input" value="${currentTitle}" maxlength="200">
+        <div class="title-edit-actions">
+            <button class="title-edit-btn title-edit-save" onclick="saveTitle(${textId})">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="title-edit-btn title-edit-cancel" onclick="cancelEditTitle(${textId}, '${currentTitle.replace(/'/g, "\\'")}')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    
+    // Фокусируемся на поле ввода и выделяем весь текст
+    const input = titleContainer.querySelector('.title-edit-input');
+    input.focus();
+    input.select();
+    
+    // Обработка нажатия Enter и Escape
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveTitle(textId);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEditTitle(textId, currentTitle);
+        }
+    });
+}
+
+// Функция для сохранения измененного названия
+async function saveTitle(textId) {
+    // Находим элемент по кнопке сохранения, а не по onclick
+    const saveButton = document.querySelector(`[onclick="saveTitle(${textId})"]`);
+    if (!saveButton) {
+        console.error('Кнопка сохранения не найдена');
+        return;
+    }
+    
+    const textItem = saveButton.closest('.text-item');
+    if (!textItem) {
+        console.error('Элемент текста не найден');
+        return;
+    }
+    
+    const input = textItem.querySelector('.title-edit-input');
+    if (!input) {
+        console.error('Поле ввода не найдено');
+        return;
+    }
+    
+    const newTitle = input.value.trim();
+    
+    if (!newTitle) {
+        window.app.showNotification('Название не может быть пустым', 'error');
+        input.focus();
+        return;
+    }
+    
+    try {
+        window.app.showLoader();
+        
+        const response = await window.app.apiRequest(`/api/texts/${textId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: newTitle })
+        });
+        
+        if (response.message) {
+            // Обновляем отображение названия
+            const titleContainer = textItem.querySelector('.text-title-container');
+            if (titleContainer) {
+                titleContainer.innerHTML = `
+                    <span class="text-title-display">${escapeHtml(newTitle)}</span>
+                    <i class="fas fa-edit edit-title-icon" onclick="startEditTitle(${textId}, '${escapeHtml(newTitle).replace(/'/g, "\\'")}')" title="Редактировать название"></i>
+                `;
+            }
+            
+            window.app.showNotification('Название успешно обновлено', 'success');
+        }
+        
+    } catch (error) {
+        console.error('Ошибка обновления названия:', error);
+        window.app.showNotification('Ошибка обновления названия', 'error');
+    } finally {
+        window.app.hideLoader();
+    }
+}
+
+// Функция для отмены редактирования названия
+function cancelEditTitle(textId, originalTitle) {
+    // Находим элемент по кнопке отмены
+    const cancelButton = document.querySelector(`[onclick*="cancelEditTitle(${textId}"]`);
+    if (!cancelButton) {
+        console.error('Кнопка отмены не найдена');
+        return;
+    }
+    
+    const textItem = cancelButton.closest('.text-item');
+    if (!textItem) {
+        console.error('Элемент текста не найден');
+        return;
+    }
+    
+    const titleContainer = textItem.querySelector('.text-title-container');
+    if (!titleContainer) {
+        console.error('Контейнер заголовка не найден');
+        return;
+    }
+    
+    // Возвращаем исходное отображение
+    titleContainer.innerHTML = `
+        <span class="text-title-display">${escapeHtml(originalTitle)}</span>
+        <i class="fas fa-edit edit-title-icon" onclick="startEditTitle(${textId}, '${escapeHtml(originalTitle).replace(/'/g, "\\'")}')" title="Редактировать название"></i>
+    `;
 }

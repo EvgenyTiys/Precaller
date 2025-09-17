@@ -136,6 +136,56 @@ router.post('/:id/fragments', authenticateToken, (req, res) => {
     }
 });
 
+// Обновление названия текста
+router.put('/:id', authenticateToken, (req, res) => {
+    try {
+        const textId = req.params.id;
+        const { title } = req.body;
+
+        if (!title || title.trim() === '') {
+            return res.status(400).json({ error: 'Название текста не может быть пустым' });
+        }
+
+        // Проверяем доступ к тексту
+        req.db.getTextById(textId, (err, text) => {
+            if (err) {
+                console.error('Ошибка получения текста:', err);
+                return res.status(500).json({ error: 'Ошибка получения текста' });
+            }
+
+            if (!text) {
+                return res.status(404).json({ error: 'Текст не найден' });
+            }
+
+            // Проверяем, что текст принадлежит пользователю
+            if (text.user_id !== req.user.id) {
+                return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+            }
+
+            // Обновляем название текста
+            req.db.updateText(textId, title.trim(), (err, changes) => {
+                if (err) {
+                    console.error('Ошибка обновления текста:', err);
+                    return res.status(500).json({ error: 'Ошибка обновления текста' });
+                }
+
+                if (changes === 0) {
+                    return res.status(404).json({ error: 'Текст не найден' });
+                }
+
+                res.json({ 
+                    message: 'Название текста успешно обновлено',
+                    textId: parseInt(textId),
+                    title: title.trim()
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка обновления текста:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
 // Удаление текста
 router.delete('/:id', authenticateToken, (req, res) => {
     try {
