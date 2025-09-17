@@ -55,7 +55,9 @@ function initializeMenuHandlers() {
     }
     
     if (trainingOption) {
-        trainingOption.addEventListener('click', showTrainingList);
+        trainingOption.addEventListener('click', function() {
+            window.location.href = '/training';
+        });
     }
     
     // Ссылки в хедере: "Мои тексты" и "Тренировка"
