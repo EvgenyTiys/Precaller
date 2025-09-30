@@ -316,7 +316,7 @@ function initializePunctuationSplitting() {
     const fullText = currentText.content;
     
     // Знаки препинания для разбиения
-    const punctuationMarks = /[.!?;:—–-]\s*/g;
+    const punctuationMarks = /[,.!?;:—–-]\s*/g;
     
     // Находим все позиции знаков препинания
     const splitPositions = [];
@@ -498,7 +498,7 @@ function displayFragments() {
 // Добавление маркеров к тексту
 function addMarkersToText(text, startPosition) {
     // Используем ту же логику поиска, что и при инициализации
-    const punctuationRegex = /[.!?;:—–-]\s*/g;
+    const punctuationRegex = /[,.!?;:—–-]\s*/g;
     const splitPositions = [];
     let match;
     while ((match = punctuationRegex.exec(text)) !== null) {
