@@ -222,28 +222,55 @@ async function apiRequest(url, options = {}) {
     try {
         const response = await fetch(url, mergedOptions);
         
-        // Проверяем, что ответ действительно JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            console.error('Server returned non-JSON response:', contentType);
-            const text = await response.text();
-            console.error('Response text:', text);
-            throw new Error('Сервер вернул неверный формат данных');
-        }
+        // Получаем тип контента ДО чтения ответа
+        const contentType = response.headers.get('content-type') || '';
         
-        const data = await response.json();
+        // Читаем ответ как текст (чтобы можно было обработать и JSON, и текст)
+        const responseText = await response.text();
         
+        // Проверяем статус ответа
         if (!response.ok) {
-            // Если токен истек, выходим из системы
-            if (response.status === 403 && data.error === 'Недействительный токен') {
-                console.log('Token expired, logging out...');
-                logout();
-                throw new Error('Сессия истекла. Пожалуйста, войдите в систему заново.');
+            // Пытаемся получить JSON ошибку
+            if (contentType.includes('application/json') && responseText) {
+                try {
+                    const data = JSON.parse(responseText);
+                    // Если токен истек, выходим из системы
+                    if (response.status === 403 && data.error === 'Недействительный токен') {
+                        console.log('Token expired, logging out...');
+                        logout();
+                        throw new Error('Сессия истекла. Пожалуйста, войдите в систему заново.');
+                    }
+                    throw new Error(data.error || 'Ошибка сервера');
+                } catch (e) {
+                    if (e.message.includes('Сессия истекла') || e.message.includes('Ошибка сервера')) {
+                        throw e;
+                    }
+                    throw new Error(responseText || `Ошибка сервера: ${response.status} ${response.statusText}`);
+                }
+            } else {
+                throw new Error(responseText || `Ошибка сервера: ${response.status} ${response.statusText}`);
             }
-            throw new Error(data.error || 'Ошибка сервера');
         }
         
-        return data;
+        // Для успешных ответов
+        // Если ответ пустой (204 No Content), возвращаем пустой объект
+        if (response.status === 204 || (response.status === 201 && !responseText)) {
+            return {};
+        }
+        
+        // Если текст пустой, возвращаем пустой объект
+        if (!responseText || responseText.trim() === '') {
+            return {};
+        }
+        
+        // Пытаемся распарсить как JSON
+        try {
+            return JSON.parse(responseText);
+        } catch (e) {
+            // Если не JSON, но статус успешный, возвращаем текст как сообщение
+            console.warn('Server returned non-JSON response, but status is OK. Content-Type:', contentType, 'Text:', responseText);
+            return { message: responseText };
+        }
     } catch (error) {
         console.error('API Error:', error);
         throw error;

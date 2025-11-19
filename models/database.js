@@ -67,6 +67,16 @@ class Database {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id),
                 FOREIGN KEY (text_id) REFERENCES texts (id)
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS training_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                text_id INTEGER NOT NULL,
+                duration_seconds INTEGER NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (text_id) REFERENCES texts (id)
             )`
         ];
 
@@ -74,6 +84,29 @@ class Database {
             this.db.run(query, (err) => {
                 if (err) {
                     console.error('Ошибка создания таблицы:', err.message);
+                }
+            });
+        });
+        
+        // Создаём индексы для оптимизации запросов
+        this.createIndexes();
+    }
+    
+    createIndexes() {
+        const indexQueries = [
+            `CREATE INDEX IF NOT EXISTS idx_texts_user_id ON texts(user_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_text_fragments_text_id ON text_fragments(text_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_training_sessions_user_id ON training_sessions(user_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_training_sessions_text_id ON training_sessions(text_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_training_sessions_created_at ON training_sessions(created_at)`
+        ];
+        
+        indexQueries.forEach(query => {
+            this.db.run(query, (err) => {
+                if (err) {
+                    console.error('Ошибка создания индекса:', err.message);
+                } else {
+                    console.log('Индекс создан успешно');
                 }
             });
         });
@@ -107,6 +140,26 @@ class Database {
 
     getTextsByUserId(userId, callback) {
         const query = `SELECT * FROM texts WHERE user_id = ? ORDER BY created_at DESC`;
+        this.db.all(query, [userId], callback);
+    }
+
+    // Оптимизированный метод для получения текстов с количеством фрагментов одним запросом
+    getTextsWithFragmentsCount(userId, callback) {
+        const query = `
+            SELECT 
+                t.id,
+                t.title,
+                t.language,
+                t.created_at,
+                COUNT(tf.id) as fragment_count,
+                COUNT(CASE WHEN tf.emoji IS NOT NULL OR tf.custom_image IS NOT NULL OR tf.custom_word IS NOT NULL THEN 1 END) as complete_fragments
+            FROM texts t
+            LEFT JOIN text_fragments tf ON t.id = tf.text_id
+            WHERE t.user_id = ?
+            GROUP BY t.id
+            HAVING fragment_count > 0 AND fragment_count = complete_fragments
+            ORDER BY t.created_at DESC
+        `;
         this.db.all(query, [userId], callback);
     }
 
@@ -187,6 +240,24 @@ class Database {
     getRouteByTextId(textId, callback) {
         const query = `SELECT * FROM user_routes WHERE text_id = ?`;
         this.db.get(query, [textId], callback);
+    }
+
+    // Методы для работы с тренировками
+    createTrainingSession(userId, textId, durationSeconds, callback) {
+        const query = `INSERT INTO training_sessions (user_id, text_id, duration_seconds) VALUES (?, ?, ?)`;
+        this.db.run(query, [userId, textId, durationSeconds], function(err) {
+            callback(err, this.lastID);
+        });
+    }
+
+    getTrainingSessionsByUserId(userId, callback) {
+        const query = `SELECT * FROM training_sessions WHERE user_id = ? ORDER BY created_at DESC`;
+        this.db.all(query, [userId], callback);
+    }
+
+    getTrainingSessionsByTextId(textId, callback) {
+        const query = `SELECT * FROM training_sessions WHERE text_id = ? ORDER BY created_at DESC`;
+        this.db.all(query, [textId], callback);
     }
 
     close() {

@@ -60,52 +60,71 @@ router.get('/available', authenticateToken, (req, res) => {
     try {
         const userId = req.user.id;
 
-        req.db.getTextsByUserId(userId, (err, texts) => {
+        // Используем оптимизированный метод с одним запросом вместо N+1
+        req.db.getTextsWithFragmentsCount(userId, (err, texts) => {
             if (err) {
                 console.error('Ошибка получения текстов:', err);
                 return res.status(500).json({ error: 'Ошибка получения текстов' });
             }
 
-            // Для каждого текста проверяем наличие фрагментов с ассоциациями
-            let processedTexts = 0;
-            const availableTexts = [];
+            // Преобразуем результат в нужный формат
+            const availableTexts = texts.map(text => ({
+                id: text.id,
+                title: text.title,
+                language: text.language,
+                fragmentCount: text.fragment_count,
+                createdAt: text.created_at
+            }));
 
-            if (texts.length === 0) {
-                return res.json({ texts: [] });
+            res.json({ texts: availableTexts });
+        });
+    } catch (error) {
+        console.error('Ошибка получения доступных текстов:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Сохранение времени тренировки
+router.post('/session', authenticateToken, (req, res) => {
+    try {
+        const { textId, durationSeconds } = req.body;
+        const userId = req.user.id;
+        
+        const MAX_DURATION = 86400; // 24 hours in seconds
+
+        if (!textId || !durationSeconds || durationSeconds < 0 || durationSeconds > MAX_DURATION) {
+            return res.status(400).json({ 
+                error: `Длительность тренировки должна быть от 0 до ${MAX_DURATION} секунд (24 часа)` 
+            });
+        }
+
+        // Проверяем доступ к тексту
+        req.db.getTextById(textId, (err, text) => {
+            if (err) {
+                console.error('Ошибка получения текста:', err);
+                return res.status(500).json({ error: 'Ошибка получения текста' });
             }
 
-            texts.forEach(text => {
-                req.db.getFragmentsByTextId(text.id, (err, fragments) => {
-                    processedTexts++;
-                    
-                    if (!err && fragments.length > 0) {
-                        const completeFragments = fragments.filter(f => 
-                            f.emoji || f.custom_image || f.custom_word
-                        );
-                        
-                        if (completeFragments.length === fragments.length) {
-                            availableTexts.push({
-                                id: text.id,
-                                title: text.title,
-                                language: text.language,
-                                fragmentCount: fragments.length,
-                                createdAt: text.created_at
-                            });
-                        }
-                    }
-                    
-                    if (processedTexts === texts.length) {
-                        res.json({ 
-                            texts: availableTexts.sort((a, b) => 
-                                new Date(b.createdAt) - new Date(a.createdAt)
-                            )
-                        });
-                    }
+            if (!text || text.user_id !== userId) {
+                return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+            }
+
+            // Сохраняем сессию тренировки
+            req.db.createTrainingSession(userId, textId, durationSeconds, (err, sessionId) => {
+                if (err) {
+                    console.error('Ошибка сохранения сессии тренировки:', err);
+                    return res.status(500).json({ error: 'Ошибка сохранения сессии тренировки' });
+                }
+
+                res.json({ 
+                    success: true, 
+                    sessionId,
+                    message: 'Время тренировки сохранено'
                 });
             });
         });
     } catch (error) {
-        console.error('Ошибка получения доступных текстов:', error);
+        console.error('Ошибка сохранения сессии тренировки:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });

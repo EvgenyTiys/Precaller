@@ -25,16 +25,6 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Увеличиваем лимит для изображений
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-// Настройка статических файлов с заголовками для предотвращения кэширования JS
-app.use(express.static(path.join(__dirname, 'public'), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.js')) {
-            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-            res.setHeader('Pragma', 'no-cache');
-            res.setHeader('Expires', '0');
-        }
-    }
-}));
 app.use(logger);
 
 // Настройка шаблонизатора EJS
@@ -47,11 +37,23 @@ app.use((req, res, next) => {
     next();
 });
 
-// Маршруты
+// API маршруты ДО статических файлов, чтобы они не перехватывали запросы
 app.use('/api/auth', authRoutes);
 app.use('/api/texts', textRoutes);
 app.use('/api/wizard', wizardRoutes);
 app.use('/api/training', trainingRoutes);
+
+// Настройка статических файлов с заголовками для предотвращения кэширования JS
+// Статические файлы ПОСЛЕ API маршрутов, чтобы не перехватывать их
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.js')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
+    }
+}));
 
 // Главная страница
 app.get('/', (req, res) => {

@@ -101,7 +101,11 @@ const germanEnglishDict = {
     'schützen': 'protect', 'bevor': 'before', 'mit': 'with', 'dem': 'the',
     'experimentiert': 'experimented', 'sollte': 'should', 'große': 'big',
     'vom': 'from', 'lesen': 'read', 'alles': 'everything', 'haben': 'have',
-    'fragen': 'questions', 'frage': 'question'
+    'fragen': 'questions', 'frage': 'question',
+
+    // Дополнения для лучшего покрытия
+    'englisch': 'english',
+    'kind': 'child'
 };
 
 // Онтологический граф с отношениями
@@ -367,6 +371,9 @@ const wordForms = {
     'ressourcen': 'ressource', 'stressphasen': 'stressphase', 'gefahren': 'gefahr',
     'fragen': 'frage', 'antworten': 'antwort', 'probleme': 'problem',
     'lösungen': 'lösung', 'ideen': 'idee', 'gedanken': 'gedanke',
+
+    // Глагольная форма из примера
+    'gelernt': 'lernen',
     
     // Английские формы
     'people': 'person', 'men': 'man', 'women': 'woman', 'children': 'child',
@@ -444,6 +451,15 @@ function getMultipleTranslations(germanWord) {
         // Добавляем синонимы основного перевода
         const synonyms = getWordNetSynonyms(primaryTranslation);
         translations.push(...synonyms);
+    } else {
+        // Эвристика для суффикса -isch → -ish ("englisch" → "english")
+        if (normalizedWord.endsWith('isch')) {
+            translations.push(normalizedWord.replace(/isch$/, 'ish'));
+        }
+        // Явный частный случай для надежности
+        if (normalizedWord === 'englisch' && !translations.includes('english')) {
+            translations.push('english');
+        }
     }
     
     // Дополнительные переводы для многозначных слов

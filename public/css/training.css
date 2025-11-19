@@ -2,7 +2,8 @@
 
 /* Выбор текста */
 .text-selection {
-    max-width: 1000px;
+    width: 90%;
+    max-width: none;
     margin: 0 auto;
     text-align: center;
 }
@@ -64,10 +65,105 @@
     font-size: 1.1rem;
 }
 
+/* Страница перед тренировкой */
+.training-start {
+    width: 90%;
+    max-width: none;
+    margin: 0 auto;
+}
+
+.start-content {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.start-content h2 {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+}
+
+.timer-display {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #667eea;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    display: inline-block;
+    min-width: 150px;
+}
+
+.start-input-section {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.start-input-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.fragment-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.fragment-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.start-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 1.1rem;
+    margin-top: 1rem;
+}
+
+.start-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
 /* Режим тренировки */
 .training-mode {
-    max-width: 900px;
+    width: 90%;
+    max-width: none;
     margin: 0 auto;
+}
+
+/* Контейнер для страницы тренировки */
+main .container {
+    width: 90%;
+    max-width: none;
+}
+
+/* Цепочка рассказа в хэдере */
+.story-chain .container {
+    width: 90%;
+    max-width: none;
 }
 
 .training-header {
@@ -89,11 +185,43 @@
 .training-controls {
     display: flex;
     gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .visibility-controls {
     display: flex;
     gap: 1rem;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.timer-display-small {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 1rem;
+}
+
+.timer-display-small i {
+    font-size: 1rem;
+}
+
+.stop-timer-btn {
+    background: #dc3545;
+}
+
+.stop-timer-btn:hover {
+    background: #c82333;
 }
 
 .control-btn {
@@ -153,6 +281,34 @@
 
 .fragment-display {
     margin-bottom: 3rem;
+}
+
+.fragment-input-container {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.fragment-input-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.user-input-text {
+    font-size: 1.5rem;
+    line-height: 1.6;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-weight: 500;
+    padding: 1rem;
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #fragmentText {
@@ -342,6 +498,14 @@
     font-size: 1.1rem;
 }
 
+.finish-btn {
+    background: #28a745;
+}
+
+.finish-btn:hover {
+    background: #218838;
+}
+
 /* Индикатор фрагментов */
 .fragment-indicator {
     display: flex;
@@ -402,6 +566,19 @@
 
 /* Адаптивность для тренировки */
 @media (max-width: 768px) {
+    .training-start {
+        padding: 1rem;
+    }
+    
+    .start-content {
+        padding: 2rem 1.5rem;
+    }
+    
+    .timer-display {
+        font-size: 2rem;
+        padding: 1rem;
+    }
+    
     .training-header {
         flex-direction: column;
         gap: 1rem;
@@ -411,11 +588,18 @@
     .training-controls {
         width: 100%;
         justify-content: center;
+        flex-direction: column;
     }
     
     .visibility-controls {
         flex-wrap: wrap;
         justify-content: center;
+    }
+    
+    .timer-controls {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
     }
     
     .current-fragment {
