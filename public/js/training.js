@@ -1,5 +1,12 @@
 // JavaScript для режима тренировки
 
+// Константы
+const INPUT_SLIDE_INDEX = -1; // Специальный индекс для слайда ввода
+const NAVIGATION_DELAY = 100; // Задержка для снятия блокировки навигации (мс)
+const ANIMATION_DURATION = 500; // Длительность анимации (мс)
+const TIMER_UPDATE_INTERVAL = 100; // Интервал обновления таймера (мс)
+
+// Состояние тренировки
 let currentTextId = null;
 let currentText = null;
 let trainingFragments = [];
@@ -17,8 +24,12 @@ let isTimerRunning = false;
 // Введённые пользователем фразы
 let userInputs = [];
 
-// Защита от race condition при навигации (BUG-015)
+// Защита от race condition при навигации
 let isNavigating = false;
+
+// Защита от повторных запросов
+let isFinishing = false;
+let isRestarting = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeTraining();
@@ -157,13 +168,26 @@ function initializeTrainingHandlers() {
 
 // Обработка клавиатурных сокращений
 function handleKeyboardShortcuts(event) {
-    // Если фокус в поле ввода, обрабатываем только пробел для завершения тренировки
+    // Если фокус в поле ввода, обрабатываем специальные случаи
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
         // На последнем слайде пробел завершает тренировку
         if (event.key === ' ' && currentFragmentIndex >= trainingFragments.length - 1) {
             event.preventDefault();
             finishTraining();
+            return;
         }
+        // На первом слайде (слайд ввода) клавиша "вправо" должна работать
+        if (event.key === 'ArrowRight' && currentFragmentIndex === INPUT_SLIDE_INDEX) {
+            event.preventDefault();
+            const continueBtn = document.getElementById('continueBtn');
+            if (continueBtn && continueBtn.style.display !== 'none' && continueBtn.offsetParent !== null) {
+                continueBtn.click();
+            } else {
+                continueFromInput();
+            }
+            return;
+        }
+        // Для остальных случаев в поле ввода не обрабатываем клавиши
         return;
     }
     
@@ -174,12 +198,48 @@ function handleKeyboardShortcuts(event) {
             break;
         case 'ArrowRight':
             event.preventDefault();
-            goToNext();
+            // Проверяем, видна ли кнопка "Начать тренировку" (страница перед тренировкой)
+            const startTrainingBtn = document.getElementById('startTrainingBtn');
+            const trainingStart = document.getElementById('trainingStart');
+            if (trainingStart && trainingStart.style.display !== 'none' && 
+                startTrainingBtn && startTrainingBtn.style.display !== 'none' && 
+                startTrainingBtn.offsetParent !== null) {
+                startTrainingBtn.click();
+                return;
+            }
+            
+            // На первом слайде (слайд ввода) - нажимаем кнопку "Далее"
+            if (currentFragmentIndex === INPUT_SLIDE_INDEX) {
+                const continueBtn = document.getElementById('continueBtn');
+                // Пытаемся нажать на кнопку, если она видима
+                if (continueBtn && continueBtn.style.display !== 'none' && continueBtn.offsetParent !== null) {
+                    continueBtn.click();
+                } else {
+                    // Если кнопка не видна, вызываем функцию напрямую
+                    continueFromInput();
+                }
+                return;
+            }
+            // На последнем слайде - проверяем, есть ли кнопка "В начало"
+            else if (currentFragmentIndex >= trainingFragments.length - 1) {
+                const restartBtn = document.getElementById('restartBtn');
+                if (restartBtn && restartBtn.style.display !== 'none' && restartBtn.offsetParent !== null) {
+                    // Если кнопка "В начало" видима, нажимаем на неё
+                    restartBtn.click();
+                } else {
+                    // Иначе завершаем тренировку
+                    finishTraining();
+                }
+            } else {
+                goToNext();
+            }
             break;
         case ' ': // Пробел
             event.preventDefault();
-            // На последнем слайде завершаем тренировку, иначе следующий слайд
-            if (currentFragmentIndex >= trainingFragments.length - 1) {
+            // BUG-012: Исправлено - явная обработка слайда ввода
+            if (currentFragmentIndex === INPUT_SLIDE_INDEX) {
+                continueFromInput();
+            } else if (currentFragmentIndex >= trainingFragments.length - 1) {
                 finishTraining();
             } else {
                 goToNext();
@@ -215,20 +275,46 @@ async function loadAvailableTexts() {
     if (!trainingTexts) return;
     
     try {
+        // BUG-015: Проверка на существование window.app
+        if (!window.app) {
+            throw new Error('Приложение не загружено. Перезагрузите страницу.');
+        }
+        
         window.app.showLoader();
         
         const response = await window.app.apiRequest('/api/training/available');
         const texts = response.texts;
         
         if (texts.length === 0) {
-            trainingTexts.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-brain" style="font-size: 4rem; color: #ccc; margin-bottom: 2rem;"></i>
-                    <h3>Нет готовых текстов для тренировки</h3>
-                    <p>Сначала загрузите тексты и пройдите мастер настройки</p>
-                    <a href="/" class="btn btn-primary">Перейти к загрузке</a>
-                </div>
-            `;
+            // BUG-002: Исправлено - используем безопасные методы вместо innerHTML
+            trainingTexts.innerHTML = '';
+            
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-brain';
+            icon.style.fontSize = '4rem';
+            icon.style.color = '#ccc';
+            icon.style.marginBottom = '2rem';
+            
+            const heading = document.createElement('h3');
+            heading.textContent = 'Нет готовых текстов для тренировки';
+            
+            const message = document.createElement('p');
+            message.textContent = 'Сначала загрузите тексты и пройдите мастер настройки';
+            
+            const link = document.createElement('a');
+            link.href = '/';
+            link.className = 'btn btn-primary';
+            link.textContent = 'Перейти к загрузке';
+            
+            emptyState.appendChild(icon);
+            emptyState.appendChild(heading);
+            emptyState.appendChild(message);
+            emptyState.appendChild(link);
+            trainingTexts.appendChild(emptyState);
+            
             return;
         }
         
@@ -263,7 +349,8 @@ async function loadAvailableTexts() {
             const dateIcon = document.createElement('i');
             dateIcon.className = 'fas fa-calendar';
             dateSpan.appendChild(dateIcon);
-            dateSpan.appendChild(document.createTextNode(` ${window.app.formatDate(text.createdAt)}`));
+            const dateText = window.app && window.app.formatDate ? window.app.formatDate(text.createdAt) : new Date(text.createdAt).toLocaleDateString('ru-RU');
+            dateSpan.appendChild(document.createTextNode(` ${dateText}`));
             
             stats.appendChild(fragmentSpan);
             stats.appendChild(dateSpan);
@@ -322,15 +409,27 @@ function selectTextForTraining(textId) {
     loadTrainingText();
 }
 
-// Очистка предыдущей тренировки (BUG-014: Утечка памяти)
+// Очистка предыдущей тренировки
 function cleanupTraining() {
     // Останавливаем таймер
     stopTimer();
     resetTimer();
     
-    // Очищаем состояние
+    // Очищаем состояние тренировки (но НЕ данные текста, так как они могут быть переиспользованы)
     userInputs = [];
     currentFragmentIndex = 0;
+    // НЕ очищаем currentText и trainingFragments - они могут быть переиспользованы при перезапуске
+    
+    // Сбрасываем флаги (BUG-003: Исправлено)
+    isFinishing = false;
+    isNavigating = false;
+    isRestarting = false;
+}
+
+// Полная очистка (включая данные текста) - используется при переключении текстов
+function cleanupTrainingFull() {
+    cleanupTraining();
+    // Очищаем данные текста только при полной очистке
     currentText = null;
     trainingFragments = [];
 }
@@ -339,19 +438,26 @@ function cleanupTraining() {
 async function loadTrainingText() {
     if (!currentTextId) return;
     
-    // Очищаем предыдущую тренировку (BUG-014)
-    cleanupTraining();
+    // Очищаем предыдущую тренировку полностью (включая данные текста) при загрузке нового текста
+    cleanupTrainingFull();
     
     try {
+        // BUG-015: Проверка на существование window.app
+        if (!window.app) {
+            throw new Error('Приложение не загружено. Перезагрузите страницу.');
+        }
+        
         window.app.showLoader();
         
         const response = await window.app.apiRequest(`/api/training/text/${currentTextId}`);
         currentText = response.text;
         trainingFragments = response.fragments;
         
-        // Проверка на пустой массив фрагментов (BUG-018)
-        if (trainingFragments.length === 0) {
-            window.app.showNotification('Текст не содержит фрагментов для тренировки', 'error');
+        // Проверка на пустой массив фрагментов
+        if (!Array.isArray(trainingFragments) || trainingFragments.length === 0) {
+            if (window.app && window.app.showNotification) {
+                window.app.showNotification('Текст не содержит фрагментов для тренировки', 'error');
+            }
             showTextSelection();
             return;
         }
@@ -364,12 +470,16 @@ async function loadTrainingText() {
         
     } catch (error) {
         console.error('Load training text error:', error);
-        window.app.showNotification(error.message || 'Ошибка загрузки текста для тренировки', 'error');
+        if (window.app && window.app.showNotification) {
+            window.app.showNotification(error.message || 'Ошибка загрузки текста для тренировки', 'error');
+        }
         
         // Возвращаемся к выбору текстов
         showTextSelection();
     } finally {
-        window.app.hideLoader();
+        if (window.app && window.app.hideLoader) {
+            window.app.hideLoader();
+        }
     }
 }
 
@@ -400,7 +510,19 @@ function showTrainingStart() {
 
 // Показать слайд с вводом
 function showInputSlide() {
-    currentFragmentIndex = -1; // Специальный индекс для слайда ввода
+    // Проверка на инициализацию trainingFragments перед показом слайда ввода
+    if (!Array.isArray(trainingFragments) || trainingFragments.length === 0) {
+        console.error('Cannot show input slide: trainingFragments not initialized');
+        // Пытаемся перезагрузить текст, если он был очищен по ошибке
+        if (currentTextId) {
+            loadTrainingText();
+        } else {
+            showTextSelection();
+        }
+        return;
+    }
+    
+    currentFragmentIndex = INPUT_SLIDE_INDEX;
     
     const fragmentText = document.getElementById('fragmentText');
     const userInputText = document.getElementById('userInputText');
@@ -452,6 +574,15 @@ function showInputSlide() {
     if (prevBtn) {
         prevBtn.disabled = true;
     }
+    // Убеждаемся, что кнопка "В начало" скрыта на первом слайде
+    const restartBtn = document.getElementById('restartBtn');
+    if (restartBtn) {
+        restartBtn.style.display = 'none';
+    }
+    const finishBtn = document.getElementById('finishBtn');
+    if (finishBtn) {
+        finishBtn.style.display = 'none';
+    }
     
     // Обновляем номер фрагмента
     const currentNumber = document.getElementById('currentNumber');
@@ -465,10 +596,33 @@ function showInputSlide() {
 
 // Продолжить после ввода
 function continueFromInput() {
+    // Проверка на инициализацию trainingFragments
+    if (!Array.isArray(trainingFragments) || trainingFragments.length === 0) {
+        console.error('Cannot continue: trainingFragments not initialized');
+        // Пытаемся перезагрузить текст, если он был очищен по ошибке
+        if (currentTextId) {
+            loadTrainingText();
+        } else {
+            showTextSelection();
+        }
+        return;
+    }
+    
+    // Инициализируем userInputs, если он не инициализирован или имеет неправильную длину
+    if (!Array.isArray(userInputs) || userInputs.length !== trainingFragments.length) {
+        userInputs = new Array(trainingFragments.length).fill('');
+    }
+    
     const fragmentInput = document.getElementById('fragmentInput');
     if (fragmentInput) {
         // Сохраняем введённую фразу для первого фрагмента
         userInputs[0] = fragmentInput.value.trim();
+    }
+    
+    // Убеждаемся, что кнопка "В начало" скрыта
+    const restartBtn = document.getElementById('restartBtn');
+    if (restartBtn) {
+        restartBtn.style.display = 'none';
     }
     
     // Переходим к первому фрагменту
@@ -795,12 +949,32 @@ function updateNavigationButtons() {
     }
     
     if (nextBtn && continueBtn && restartBtn && finishBtn) {
-        if (currentFragmentIndex >= trainingFragments.length - 1) {
+        // На первом слайде (слайд ввода) - показываем только кнопку продолжения
+        if (currentFragmentIndex === INPUT_SLIDE_INDEX) {
+            nextBtn.style.display = 'none';
+            continueBtn.style.display = 'block';
+            restartBtn.style.display = 'none';
+            finishBtn.style.display = 'none';
+        }
+        // На последнем слайде - проверяем, завершена ли тренировка
+        else if (currentFragmentIndex >= trainingFragments.length - 1) {
+            const completeTitle = document.getElementById('completeTitle');
+            const isCompleted = completeTitle && completeTitle.dataset.completed === 'true';
+            
             nextBtn.style.display = 'none';
             continueBtn.style.display = 'none';
-            restartBtn.style.display = 'none';
-            finishBtn.style.display = 'block';
+            
+            if (isCompleted) {
+                // Тренировка завершена - показываем кнопку "В начало"
+                restartBtn.style.display = 'block';
+                finishBtn.style.display = 'none';
+            } else {
+                // Тренировка не завершена - показываем кнопку "Завершить тренировку"
+                restartBtn.style.display = 'none';
+                finishBtn.style.display = 'block';
+            }
         } else {
+            // На промежуточных слайдах
             nextBtn.style.display = 'block';
             continueBtn.style.display = 'none';
             restartBtn.style.display = 'none';
@@ -814,12 +988,19 @@ function updateFragmentIndicator() {
     const fragmentIndicator = document.getElementById('fragmentIndicator');
     if (!fragmentIndicator) return;
     
+    // BUG-010: Исправлено - проверка на существование массива
+    if (!Array.isArray(trainingFragments)) {
+        return;
+    }
+    
     // Специальная обработка для слайда ввода
-    if (currentFragmentIndex === -1) {
+    if (currentFragmentIndex === INPUT_SLIDE_INDEX) {
         fragmentIndicator.innerHTML = '';
         trainingFragments.forEach(() => {
             const dot = document.createElement('div');
             dot.className = 'fragment-dot';
+            // BUG-007: Исправлено - точки на слайде ввода неактивны
+            dot.classList.add('disabled');
             fragmentIndicator.appendChild(dot);
         });
         return;
@@ -864,7 +1045,7 @@ function goToPrevious() {
                 currentFragment.classList.add('slide-in-left');
                 setTimeout(() => {
                     currentFragment.classList.remove('slide-in-left');
-                }, 500);
+                }, ANIMATION_DURATION);
             }
         } else if (currentFragmentIndex === 0) {
             // Возвращаемся к слайду ввода
@@ -873,7 +1054,7 @@ function goToPrevious() {
     } finally {
         setTimeout(() => {
             isNavigating = false;
-        }, 100);
+        }, NAVIGATION_DELAY);
     }
 }
 
@@ -890,9 +1071,9 @@ function goToNext() {
         // Сохраняем введённую фразу ДО проверки индекса
         const fragmentInput = document.getElementById('fragmentInput');
         if (fragmentInput && fragmentInput.value.trim()) {
-            // Сохраняем для следующего фрагмента (может быть последним)
+            // BUG-004: Исправлено - сохраняем фразу для последнего фрагмента
             const nextIndex = currentFragmentIndex + 1;
-            if (nextIndex < trainingFragments.length) {
+            if (nextIndex <= trainingFragments.length - 1) {
                 userInputs[nextIndex] = fragmentInput.value.trim();
             }
         }
@@ -907,20 +1088,26 @@ function goToNext() {
                 currentFragment.classList.add('slide-in-right');
                 setTimeout(() => {
                     currentFragment.classList.remove('slide-in-right');
-                }, 500);
+                }, ANIMATION_DURATION);
             }
-        } else {
-            showTrainingComplete();
+        } else if (currentFragmentIndex >= trainingFragments.length - 1) {
+            // На последнем слайде сразу завершаем тренировку
+            finishTraining();
         }
     } finally {
         // Снимаем блокировку после небольшой задержки
         setTimeout(() => {
             isNavigating = false;
-        }, 100);
+        }, NAVIGATION_DELAY);
     }
 }
 
 function goToFragment(index) {
+    // Дополнительная проверка на валидность индекса
+    if (!Array.isArray(trainingFragments) || trainingFragments.length === 0) {
+        console.warn('Cannot navigate: trainingFragments not initialized');
+        return;
+    }
     // Защита от race condition (BUG-015)
     if (isNavigating) {
         console.warn('Navigation already in progress');
@@ -941,18 +1128,67 @@ function goToFragment(index) {
 }
 
 function restartTraining() {
-    // Очищаем тренировку (BUG-014)
-    cleanupTraining();
+    // BUG-009: Исправлено - защита от повторных вызовов
+    if (isRestarting) {
+        console.warn('Restart already in progress');
+        return;
+    }
     
-    // Возвращаемся на страницу перед тренировкой
-    showTrainingStart();
+    isRestarting = true;
     
-    window.app.showNotification('Тренировка сброшена', 'info');
+    try {
+        // Очищаем только состояние тренировки, но НЕ данные текста (trainingFragments и currentText)
+        // Это позволяет перезапустить тренировку без повторной загрузки данных
+        cleanupTraining();
+        
+        // Проверяем, что trainingFragments всё ещё загружены
+        // Если нет - перезагружаем текст
+        if (!Array.isArray(trainingFragments) || trainingFragments.length === 0) {
+            if (currentTextId) {
+                // Асинхронно загружаем текст и показываем страницу перед тренировкой
+                loadTrainingText().then(() => {
+                    showTrainingStart();
+                }).catch(() => {
+                    showTextSelection();
+                });
+                return;
+            } else {
+                showTextSelection();
+                return;
+            }
+        }
+        
+        // Скрываем кнопку "В начало" перед стартом новой тренировки
+        const restartBtn = document.getElementById('restartBtn');
+        if (restartBtn) {
+            restartBtn.style.display = 'none';
+        }
+        
+        // Возвращаемся на страницу перед тренировкой
+        showTrainingStart();
+        
+        if (window.app && window.app.showNotification) {
+            window.app.showNotification('Тренировка сброшена', 'info');
+        }
+    } finally {
+        setTimeout(() => {
+            isRestarting = false;
+        }, NAVIGATION_DELAY);
+    }
 }
 
 // Показать завершение тренировки
 function showTrainingComplete() {
     const trainingComplete = document.getElementById('trainingComplete');
+    const completeTitle = document.getElementById('completeTitle');
+    
+    // Если тренировка уже завершена через finishTraining, не показываем "Конец"
+    if (completeTitle && completeTitle.dataset.completed === 'true') {
+        // Тренировка уже завершена, просто обновляем кнопки
+        updateNavigationButtons();
+        return;
+    }
+    
     if (trainingComplete) {
         trainingComplete.style.display = 'block';
     }
@@ -968,7 +1204,6 @@ function showTrainingComplete() {
             completeMessage.classList.remove('bounce');
         }, 1000);
     }
-    
 }
 
 // Управление видимостью
@@ -1031,7 +1266,7 @@ function startTimer() {
     timerInterval = setInterval(() => {
         elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
         updateTimerDisplay();
-    }, 100);
+    }, TIMER_UPDATE_INTERVAL);
 }
 
 function stopTimer() {
@@ -1067,9 +1302,6 @@ function updateTimerDisplay() {
     }
 }
 
-// Защита от повторных запросов
-let isFinishing = false;
-
 // Завершить тренировку
 async function finishTraining() {
     // Защита от повторных вызовов
@@ -1087,14 +1319,11 @@ async function finishTraining() {
         finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
     }
     
-    // Обновляем elapsedSeconds перед остановкой таймера (вычисляем актуальное время)
+    // Обновляем elapsedSeconds перед сохранением (вычисляем актуальное время)
     if (isTimerRunning && startTime) {
         elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-        updateTimerDisplay(); // Обновляем отображение с актуальным временем
+        updateTimerDisplay();
     }
-    
-    // Останавливаем таймер СРАЗУ при нажатии кнопки
-    stopTimer();
     
     // Сохраняем в localStorage перед отправкой
     const sessionData = {
@@ -1106,6 +1335,11 @@ async function finishTraining() {
     localStorage.setItem('pendingTrainingSession', JSON.stringify(sessionData));
     
     try {
+        // BUG-015: Проверка на существование window.app
+        if (!window.app) {
+            throw new Error('Приложение не загружено. Перезагрузите страницу.');
+        }
+        
         window.app.showLoader();
         
         // Сохраняем время тренировки в БД
@@ -1117,20 +1351,29 @@ async function finishTraining() {
             })
         });
         
+        // BUG-001: Исправлено - останавливаем таймер ТОЛЬКО после успешного сохранения
+        stopTimer();
+        
         // Удаляем из localStorage только после успеха
         localStorage.removeItem('pendingTrainingSession');
         
         window.app.showNotification('Тренировка завершена! Время сохранено.', 'success');
         
-        // Показываем сообщение о завершении
-        showTrainingComplete();
+        // Скрываем блок "Конец", чтобы не показывать его
+        const trainingComplete = document.getElementById('trainingComplete');
+        if (trainingComplete) {
+            trainingComplete.style.display = 'none';
+        }
         
-        // Меняем текст заголовка
+        // Меняем текст заголовка (на случай, если блок будет показан позже)
         const completeTitle = document.getElementById('completeTitle');
         if (completeTitle) {
             completeTitle.textContent = 'Тренировка завершена';
             completeTitle.dataset.completed = 'true';
         }
+        
+        // Обновляем кнопки навигации (показываем кнопку "В начало")
+        updateNavigationButtons();
         
         // Показываем кнопку "В начало" вместо "Завершить тренировку"
         const restartBtn = document.getElementById('restartBtn');
@@ -1143,7 +1386,7 @@ async function finishTraining() {
         
     } catch (error) {
         console.error('Finish training error:', error);
-        // При ошибке таймер уже остановлен, но нужно разблокировать кнопку для повтора
+        // BUG-001: При ошибке таймер НЕ останавливается, чтобы можно было повторить попытку
         // Разблокируем кнопку для возможности повтора
         isFinishing = false;
         if (finishBtn) {
@@ -1151,9 +1394,15 @@ async function finishTraining() {
             finishBtn.innerHTML = '<i class="fas fa-redo"></i> Повторить сохранение';
             finishBtn.dataset.retry = 'true';
         }
-        window.app.showNotification(error.message || 'Ошибка сохранения времени тренировки. Нажмите "Повторить сохранение"', 'error');
+        
+        // BUG-015: Проверка на существование window.app перед показом уведомления
+        if (window.app && window.app.showNotification) {
+            window.app.showNotification(error.message || 'Ошибка сохранения времени тренировки. Нажмите "Повторить сохранение"', 'error');
+        }
     } finally {
-        window.app.hideLoader();
+        if (window.app && window.app.hideLoader) {
+            window.app.hideLoader();
+        }
     }
 }
 
@@ -1166,12 +1415,40 @@ async function retryFinishTraining() {
     if (pendingData) {
         try {
             const sessionData = JSON.parse(pendingData);
-            // Обновляем elapsedSeconds если прошло время
-            if (isTimerRunning && startTime) {
-                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            
+            // BUG-008: Исправлено - валидация данных из localStorage
+            if (!sessionData || typeof sessionData !== 'object') {
+                throw new Error('Невалидные данные сессии');
+            }
+            
+            // BUG-013: Исправлено - валидация полей
+            if (typeof sessionData.durationSeconds !== 'number' || sessionData.durationSeconds < 0) {
+                throw new Error('Невалидное время тренировки');
+            }
+            
+            if (!sessionData.textId) {
+                throw new Error('Отсутствует ID текста');
+            }
+            
+            // BUG-005: Исправлено - используем timestamp для вычисления времени
+            if (sessionData.timestamp && isTimerRunning && startTime) {
+                // Вычисляем прошедшее время с момента сохранения
+                const timeSinceSave = Math.floor((Date.now() - sessionData.timestamp) / 1000);
+                elapsedSeconds = sessionData.durationSeconds + timeSinceSave;
+                updateTimerDisplay();
+            } else if (sessionData.durationSeconds !== undefined) {
+                // Используем сохранённое время
+                elapsedSeconds = sessionData.durationSeconds;
+                updateTimerDisplay();
             }
         } catch (error) {
             console.error('Error parsing pending session data:', error);
+            // BUG-008: Исправлено - показываем ошибку и удаляем повреждённые данные
+            if (window.app && window.app.showNotification) {
+                window.app.showNotification('Ошибка восстановления данных. Начните тренировку заново.', 'error');
+            }
+            localStorage.removeItem('pendingTrainingSession');
+            return;
         }
     }
     
@@ -1199,12 +1476,6 @@ function openWizardForFragment() {
 }
 
 // Утилитарные функции
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 function getLanguageName(langCode) {
     const languages = {
