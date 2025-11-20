@@ -169,7 +169,8 @@ function initializeTrainingHandlers() {
 // Обработка клавиатурных сокращений
 function handleKeyboardShortcuts(event) {
     // Если фокус в поле ввода, обрабатываем специальные случаи
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+    // Но только если поле активно (не readonly) - если readonly, обрабатываем как обычную навигацию
+    if ((event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') && !event.target.readOnly) {
         // На последнем слайде пробел завершает тренировку
         if (event.key === ' ' && currentFragmentIndex >= trainingFragments.length - 1) {
             event.preventDefault();
@@ -187,9 +188,10 @@ function handleKeyboardShortcuts(event) {
             }
             return;
         }
-        // Для остальных случаев в поле ввода не обрабатываем клавиши
+        // Для остальных случаев в активном поле ввода не обрабатываем клавиши
         return;
     }
+    // Если поле ввода readonly, продолжаем обработку клавиш для навигации (не возвращаемся)
     
     switch (event.key) {
         case 'ArrowLeft':
@@ -424,6 +426,27 @@ function cleanupTraining() {
     isFinishing = false;
     isNavigating = false;
     isRestarting = false;
+    
+    // Сбрасываем состояние завершения тренировки в DOM
+    const completeTitle = document.getElementById('completeTitle');
+    if (completeTitle) {
+        completeTitle.dataset.completed = 'false';
+        completeTitle.textContent = 'Конец';
+    }
+    
+    // Скрываем блок завершения тренировки
+    const trainingComplete = document.getElementById('trainingComplete');
+    if (trainingComplete) {
+        trainingComplete.style.display = 'none';
+    }
+    
+    // Сбрасываем состояние кнопки "Завершить тренировку"
+    const finishBtn = document.getElementById('finishBtn');
+    if (finishBtn) {
+        finishBtn.disabled = false;
+        finishBtn.innerHTML = '<i class="fas fa-check"></i> Завершить тренировку';
+        finishBtn.dataset.retry = 'false';
+    }
 }
 
 // Полная очистка (включая данные текста) - используется при переключении текстов
@@ -548,7 +571,22 @@ function showInputSlide() {
         if (fragmentInput) {
             fragmentInput.value = '';
             fragmentInput.placeholder = 'Введите фразу первого слайда по памяти...';
-            fragmentInput.focus();
+            // Делаем поле readonly по умолчанию, чтобы не перехватывало события клавиатуры
+            fragmentInput.readOnly = true;
+            // Активируем поле при клике
+            const activateInput = function() {
+                fragmentInput.readOnly = false;
+                fragmentInput.focus();
+                // При потере фокуса снова делаем readonly
+                const deactivateInput = function() {
+                    if (fragmentInput.value.trim() === '') {
+                        fragmentInput.readOnly = true;
+                    }
+                    fragmentInput.removeEventListener('blur', deactivateInput);
+                };
+                fragmentInput.addEventListener('blur', deactivateInput, { once: true });
+            };
+            fragmentInput.addEventListener('click', activateInput, { once: true });
         }
     }
     
@@ -762,6 +800,27 @@ function displayCurrentFragment() {
             if (fragmentInput) {
                 fragmentInput.value = '';
                 fragmentInput.placeholder = 'Введите фразу следующего слайда по памяти...';
+                // Делаем поле readonly по умолчанию, чтобы не перехватывало события клавиатуры
+                fragmentInput.readOnly = true;
+                // Удаляем старые обработчики и добавляем новый для активации при клике
+                const oldHandler = fragmentInput._activateHandler;
+                if (oldHandler) {
+                    fragmentInput.removeEventListener('click', oldHandler);
+                }
+                const activateHandler = function() {
+                    fragmentInput.readOnly = false;
+                    fragmentInput.focus();
+                    // При потере фокуса снова делаем readonly (если поле пустое)
+                    const deactivateHandler = function() {
+                        if (fragmentInput.value.trim() === '') {
+                            fragmentInput.readOnly = true;
+                        }
+                        fragmentInput.removeEventListener('blur', deactivateHandler);
+                    };
+                    fragmentInput.addEventListener('blur', deactivateHandler, { once: true });
+                };
+                fragmentInput._activateHandler = activateHandler;
+                fragmentInput.addEventListener('click', activateHandler, { once: true });
             }
         } else {
             fragmentInputContainer.style.display = 'none';
@@ -972,6 +1031,10 @@ function updateNavigationButtons() {
                 // Тренировка не завершена - показываем кнопку "Завершить тренировку"
                 restartBtn.style.display = 'none';
                 finishBtn.style.display = 'block';
+                // Сбрасываем состояние кнопки на случай, если она была в состоянии "Сохранение..."
+                finishBtn.disabled = false;
+                finishBtn.innerHTML = '<i class="fas fa-check"></i> Завершить тренировку';
+                finishBtn.dataset.retry = 'false';
             }
         } else {
             // На промежуточных слайдах
