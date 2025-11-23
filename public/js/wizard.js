@@ -1,15 +1,21 @@
 // JavaScript для мастера запоминания
 
+// Глобальные переменные
 let currentTextId = null;
 let currentText = null;
-let currentFragments = [];
 let currentFragmentIndex = 0;
-let textFragments = []; // Фрагменты, созданные пользователем
 let allEmojis = [];
 let emojiCategories = [];
 let currentCategory = 'people';
 let searchTimeout = null;
 let activeEmojiPosition = -1; // -1 означает новую позицию, >= 0 означает редактирование существующей
+
+// Новый менеджер фрагментов (Фаза 1 рефакторинга)
+let fragmentManager = null;
+
+// DEPRECATED: Старые массивы - будут удалены в Фазе 2
+let currentFragments = [];
+let textFragments = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeWizard();
@@ -28,6 +34,10 @@ function initializeWizard() {
     
     // Проверяем аутентификацию
     checkAuthentication();
+    
+    // Инициализируем FragmentManager (Фаза 1)
+    fragmentManager = new FragmentManager(currentTextId);
+    console.log('[PHASE1] FragmentManager initialized');
     
     // Инициализируем обработчики
     initializeWizardHandlers();
@@ -72,9 +82,86 @@ function initializeWizardHandlers() {
     }
     
     if (proceedToStep3) {
-        proceedToStep3.addEventListener('click', () => {
+        proceedToStep3.addEventListener('click', async () => {
             if (textFragments.length > 0) {
-                saveFragments().then(() => showStep(3));
+                // Убеждаемся, что textFragments синхронизирован с currentFragments перед сохранением
+                // Это гарантирует, что удаленные фрагменты не будут восстановлены
+                console.log('Before save - textFragments:', textFragments.length);
+                console.log('Before save - currentFragments:', currentFragments.length);
+                
+                // Синхронизируем currentFragments с textFragments перед сохранением
+                // чтобы убедиться, что сохраняем только актуальные фрагменты
+                currentFragments = textFragments.map(f => {
+                    const oldFragment = currentFragments.find(cf => 
+                        (f.id && cf.id === f.id) || 
+                        (cf.content === f.content && cf.start_position === f.startPos && cf.end_position === f.endPos)
+                    );
+                    
+                    return {
+                        id: f.id || null,
+                        fragment_order: f.order,
+                        content: f.content,
+                        start_position: f.startPos,
+                        end_position: f.endPos,
+                        emoji: oldFragment ? (oldFragment.emoji || null) : null,
+                        custom_word: oldFragment ? (oldFragment.custom_word || null) : null,
+                        custom_image: oldFragment ? (oldFragment.custom_image || null) : null
+                    };
+                });
+                
+                // Сохраняем фрагменты и ждем завершения, чтобы убедиться, что currentFragments обновлен
+                await saveFragments();
+                // После сохранения currentFragments уже обновлен в saveFragments()
+                // Перезагружаем данные из БД для гарантии актуальности
+                // Добавляем timestamp к запросу, чтобы избежать кэширования
+                try {
+                    const timestamp = Date.now();
+                    const refreshed = await window.app.apiRequest(`/api/wizard/text/${currentTextId}?t=${timestamp}`);
+                    const rawFragments = refreshed.fragments || [];
+                    
+                    console.log('After save - rawFragments from DB:', rawFragments.length, rawFragments.map(f => ({
+                        id: f.id,
+                        order: f.fragment_order,
+                        content: f.content.substring(0, 30),
+                        emoji: f.emoji,
+                        custom_word: f.custom_word
+                    })));
+                    
+                    // Дедупликация и обновление currentFragments
+                    const seenFragmentsReload = new Set();
+                    currentFragments = [];
+                    
+                    rawFragments.forEach(f => {
+                        const key = `${f.start_position}-${f.end_position}-${f.content}`;
+                        if (!seenFragmentsReload.has(key)) {
+                            seenFragmentsReload.add(key);
+                            currentFragments.push({
+                                id: f.id,
+                                fragment_order: f.fragment_order,
+                                content: f.content,
+                                start_position: f.start_position,
+                                end_position: f.end_position,
+                                emoji: f.emoji || null,
+                                custom_word: f.custom_word || null,
+                                custom_image: f.custom_image || null
+                            });
+                        }
+                    });
+                    
+                    currentFragments.sort((a, b) => a.fragment_order - b.fragment_order);
+                    
+                    console.log('After save and reload - currentFragments:', currentFragments.length);
+                    console.log('Fragments:', currentFragments.map(f => ({
+                        order: f.fragment_order,
+                        content: f.content.substring(0, 30),
+                        emoji: f.emoji,
+                        custom_word: f.custom_word
+                    })));
+                } catch (error) {
+                    console.error('Error reloading fragments after save:', error);
+                }
+                
+                showStep(3);
             }
         });
     }
@@ -181,21 +268,27 @@ async function loadTextData() {
         
         const response = await window.app.apiRequest(`/api/wizard/text/${currentTextId}`);
         currentText = response.text;
-        currentFragments = response.fragments || [];
+        
+        // Загружаем фрагменты через FragmentManager (Фаза 1)
+        await fragmentManager.load();
+        
+        // DEPRECATED: Синхронизируем со старыми массивами для обратной совместимости
+        // Будет удалено в Фазе 2
+        currentFragments = fragmentManager.getAll().map(f => f.toServerFormat());
+        textFragments = fragmentManager.getAll().map(f => f.toDBFormat());
+        
+        console.log(`[PHASE1] Loaded ${fragmentManager.count()} fragments`);
         
         // Определяем с какого шага начать
         if (!response.route) {
             showStep(1);
-        } else if (currentFragments.length === 0) {
+        } else if (fragmentManager.count() === 0) {
             showStep(2);
         } else {
             showStep(3);
-            // Добавляем вызов initializeStep3() для случая, когда фрагменты уже существуют
-            // Но сначала убеждаемся, что фрагменты правильно загружены
-            if (currentFragments.length > 0) {
+            if (fragmentManager.count() > 0) {
                 initializeStep3();
             } else {
-                // Если фрагменты не загружены, попробуем загрузить их заново
                 console.log('No fragments found, reloading...');
                 loadTextData();
             }
@@ -205,8 +298,7 @@ async function loadTextData() {
         populateTextData();
         
     } catch (error) {
-        console.error('Load text data error:', error);
-        window.app.showNotification(error.message || 'Ошибка загрузки данных', 'error');
+        ErrorHandler.handle(error, 'loadTextData');
         window.location.href = '/';
     } finally {
         window.app.hideLoader();
@@ -216,10 +308,12 @@ async function loadTextData() {
 // Заполнение данных текста в формы
 function populateTextData() {
     // Шаг 2: Заполняем текст для разбиения на фрагменты
+    // НЕ вызываем initializeTextSelection() здесь, так как это будет сделано в showStep(2)
+    // Это предотвращает дублирование фрагментов при возврате на шаг 2
     const textContent = document.getElementById('textContent');
     if (textContent && currentText) {
         textContent.textContent = currentText.content;
-        initializeTextSelection();
+        // initializeTextSelection() вызывается только в showStep(2)
     }
 }
 
@@ -262,6 +356,9 @@ function showStep(stepNumber) {
     
     // Специфичная инициализация для каждого шага
     if (stepNumber === 2) {
+        // Очищаем textFragments при переходе на шаг 2, чтобы избежать накопления
+        // Они будут заново загружены из currentFragments в initializeTextSelection()
+        textFragments = [];
         initializeTextSelection();
     } else if (stepNumber === 3) {
         initializeStep3();
@@ -372,8 +469,9 @@ function createFragmentFromMarker(endPosition, splitIndex) {
     
     // Определяем начальную позицию
     let startPosition = 0;
-    if (textFragments.length > 0) {
-        startPosition = textFragments[textFragments.length - 1].endPos;
+    if (fragmentManager.count() > 0) {
+        const lastFragment = fragmentManager.get(fragmentManager.count() - 1);
+        startPosition = lastFragment.endPos;
     }
     
     // Проверяем, что позиция корректная
@@ -390,35 +488,42 @@ function createFragmentFromMarker(endPosition, splitIndex) {
         return;
     }
     
-    const fragment = {
-        order: textFragments.length + 1,
-        content: fragmentText,
-        startPos: startPosition,
-        endPos: endPosition
-    };
-    
-    textFragments.push(fragment);
-    
-    // Показываем уведомление
-    window.app.showNotification(`Создан фрагмент ${fragment.order}: "${fragmentText.substring(0, 50)}${fragmentText.length > 50 ? '...' : ''}"`, 'success');
-    
-    // Обновляем отображение текста с цветными фрагментами
-    displayFragments();
-    updateFragmentInfo();
-    
-    // Проверяем, остался ли текст
-    if (endPosition < fullText.length) {
-        const proceedBtn = document.getElementById('proceedToStep3');
-        if (proceedBtn) {
-            proceedBtn.disabled = false;
+    try {
+        // Добавляем через FragmentManager (Фаза 1)
+        const fragment = fragmentManager.add({
+            content: fragmentText,
+            startPos: startPosition,
+            endPos: endPosition
+        });
+        
+        // DEPRECATED: Синхронизируем со старыми массивами для обратной совместимости
+        textFragments = fragmentManager.getAll().map(f => f.toDBFormat());
+        
+        console.log(`[PHASE1] Created fragment ${fragment.order}`);
+        
+        // Показываем уведомление
+        window.app.showNotification(`Создан фрагмент ${fragment.order}: "${fragmentText.substring(0, 50)}${fragmentText.length > 50 ? '...' : ''}"`, 'success');
+        
+        // Обновляем отображение текста с цветными фрагментами
+        displayFragments();
+        updateFragmentInfo();
+        
+        // Проверяем, остался ли текст
+        if (endPosition < fullText.length) {
+            const proceedBtn = document.getElementById('proceedToStep3');
+            if (proceedBtn) {
+                proceedBtn.disabled = false;
+            }
+        } else {
+            // Весь текст разбит на фрагменты
+            const proceedBtn = document.getElementById('proceedToStep3');
+            if (proceedBtn) {
+                proceedBtn.disabled = false;
+                proceedBtn.textContent = 'Перейти к ассоциациям';
+            }
         }
-    } else {
-        // Весь текст разбит на фрагменты
-        const proceedBtn = document.getElementById('proceedToStep3');
-        if (proceedBtn) {
-            proceedBtn.disabled = false;
-            proceedBtn.textContent = 'Перейти к ассоциациям';
-        }
+    } catch (error) {
+        ErrorHandler.handle(error, 'createFragmentFromMarker');
     }
 }
 
@@ -453,7 +558,34 @@ function updateMarkersAfterFragment() {
 // Отображение фрагментов
 function displayFragments() {
     const textContent = document.getElementById('textContent');
+    if (!textContent || !currentText) return;
+    
     const fullText = currentText.content;
+    
+    // Дедупликация textFragments перед отображением
+    // Удаляем дубликаты по содержимому и позициям
+    const uniqueFragments = [];
+    const seenFragments = new Set();
+    
+    textFragments.forEach(f => {
+        const key = `${f.startPos}-${f.endPos}-${f.content}`;
+        if (!seenFragments.has(key)) {
+            seenFragments.add(key);
+            uniqueFragments.push(f);
+        }
+    });
+    
+    // Сортируем по позиции начала
+    uniqueFragments.sort((a, b) => a.startPos - b.startPos);
+    
+    // Обновляем textFragments, убирая дубликаты
+    textFragments = uniqueFragments;
+    
+    // Пересчитываем порядковые номера
+    textFragments.forEach((f, i) => {
+        f.order = i + 1;
+    });
+    
     let html = '';
     let lastPosition = 0;
     
@@ -558,9 +690,33 @@ function addMarkersToText(text, startPosition) {
 
 // Отображение существующих фрагментов
 function displayExistingFragments() {
-    textFragments = currentFragments.map(f => ({
+    // ВСЕГДА очищаем textFragments перед заполнением, чтобы избежать накопления дубликатов
+    textFragments = [];
+    
+    // Дедупликация currentFragments по содержимому и позициям
+    // Удаляем дубликаты, оставляя только уникальные фрагменты
+    const uniqueFragments = [];
+    const seenFragments = new Set();
+    
+    currentFragments.forEach(f => {
+        // Создаем уникальный ключ для фрагмента
+        const key = `${f.start_position}-${f.end_position}-${f.content}`;
+        if (!seenFragments.has(key)) {
+            seenFragments.add(key);
+            uniqueFragments.push(f);
+        }
+    });
+    
+    // Сортируем по порядку
+    uniqueFragments.sort((a, b) => a.fragment_order - b.fragment_order);
+    
+    // Обновляем currentFragments, убирая дубликаты
+    currentFragments = uniqueFragments;
+    
+    // Заполняем textFragments из дедуплицированных currentFragments
+    textFragments = currentFragments.map((f, index) => ({
         id: f.id,
-        order: f.fragment_order,
+        order: index + 1, // Пересчитываем порядок с 1
         content: f.content,
         startPos: f.start_position,
         endPos: f.end_position
@@ -611,20 +767,31 @@ function updateFragmentInfo() {
 function updateUndoButtonState() {
     const undoLastFragmentBtn = document.getElementById('undoLastFragment');
     if (!undoLastFragmentBtn) return;
-    undoLastFragmentBtn.disabled = textFragments.length === 0;
+    undoLastFragmentBtn.disabled = fragmentManager.count() === 0;
 }
 
 // Отменить последний фрагмент
-function undoLastFragment() {
-    if (textFragments.length === 0) return;
-    const removed = textFragments.pop();
-    // Пере-нумеруем
-    textFragments.forEach((f, i) => { f.order = i + 1; });
-    window.app.showNotification(`Отменён фрагмент ${removed.order}`, 'info');
-    // Перерисуем текст и список
-    displayFragments();
-    updateFragmentInfo();
-    updateUndoButtonState();
+async function undoLastFragment() {
+    if (fragmentManager.count() === 0) return;
+    
+    try {
+        const lastIndex = fragmentManager.count() - 1;
+        const removed = await fragmentManager.remove(lastIndex);
+        
+        // DEPRECATED: Синхронизируем со старыми массивами для обратной совместимости
+        currentFragments = fragmentManager.getAll().map(f => f.toServerFormat());
+        textFragments = fragmentManager.getAll().map(f => f.toDBFormat());
+        
+        console.log(`[PHASE1] Undone fragment ${removed.order}`);
+        window.app.showNotification(`Отменён фрагмент ${removed.order}`, 'info');
+        
+        // Перерисуем текст и список
+        displayFragments();
+        updateFragmentInfo();
+        updateUndoButtonState();
+    } catch (error) {
+        ErrorHandler.handle(error, 'undoLastFragment');
+    }
 }
 // Редактирование фрагмента
 function editFragment(index) {
@@ -633,50 +800,45 @@ function editFragment(index) {
 }
 
 // Удаление фрагмента
-function removeFragment(index) {
-    if (confirm('Удалить этот фрагмент?')) {
-        textFragments.splice(index, 1);
+async function removeFragment(index) {
+    if (!confirm('Удалить этот фрагмент?')) {
+        return;
+    }
+    
+    try {
+        // Используем FragmentManager с защитой от race conditions (Фаза 1)
+        const removed = await fragmentManager.remove(index);
         
-        // Обновляем порядковые номера
-        textFragments.forEach((fragment, i) => {
-            fragment.order = i + 1;
-        });
+        console.log(`[PHASE1] Removed fragment ${removed.order}:`, removed.content.substring(0, 50));
+        
+        // DEPRECATED: Синхронизируем со старыми массивами для обратной совместимости
+        currentFragments = fragmentManager.getAll().map(f => f.toServerFormat());
+        textFragments = fragmentManager.getAll().map(f => f.toDBFormat());
         
         displayFragments();
         updateFragmentInfo();
+        
+        window.app.showNotification('Фрагмент удалён', 'success');
+    } catch (error) {
+        ErrorHandler.handle(error, 'removeFragment');
     }
 }
 
 // Сохранение фрагментов
+// DEPRECATED: Эта функция будет переписана полностью в Фазе 2
 async function saveFragments() {
-    if (textFragments.length === 0) {
-        throw new Error('Создайте хотя бы один фрагмент');
-    }
-    
     try {
-        await window.app.apiRequest(`/api/texts/${currentTextId}/fragments`, {
-            method: 'POST',
-            body: JSON.stringify({ fragments: textFragments })
-        });
+        // Используем FragmentManager (Фаза 1)
+        await fragmentManager.save();
         
+        // DEPRECATED: Синхронизируем со старыми массивами для обратной совместимости
+        currentFragments = fragmentManager.getAll().map(f => f.toServerFormat());
+        textFragments = fragmentManager.getAll().map(f => f.toDBFormat());
+        
+        console.log(`[PHASE1] Saved ${fragmentManager.count()} fragments`);
         window.app.showNotification('Фрагменты сохранены!', 'success');
-        
-        // После сохранения обязательно загружаем фрагменты из БД,
-        // чтобы получить их реальные ID
-        const refreshed = await window.app.apiRequest(`/api/wizard/text/${currentTextId}`);
-        currentFragments = (refreshed.fragments || []).map(f => ({
-            id: f.id,
-            fragment_order: f.fragment_order,
-            content: f.content,
-            start_position: f.start_position,
-            end_position: f.end_position,
-            emoji: f.emoji || null,
-            custom_word: f.custom_word || null,
-            custom_image: f.custom_image || null
-        }));
-        
     } catch (error) {
-        console.error('Save fragments error:', error);
+        ErrorHandler.handle(error, 'saveFragments');
         throw error;
     }
 }
@@ -699,6 +861,57 @@ async function initializeStep3() {
             window.app.showNotification('Ошибка сохранения фрагментов', 'error');
             return;
         }
+    }
+    
+    // ВСЕГДА перезагружаем фрагменты из БД для гарантии актуальности данных
+    // Это особенно важно после удаления фрагментов на шаге 2
+    // Добавляем timestamp к запросу, чтобы избежать кэширования
+    try {
+        const timestamp = Date.now();
+        const refreshed = await window.app.apiRequest(`/api/wizard/text/${currentTextId}?t=${timestamp}`);
+        const rawFragments = refreshed.fragments || [];
+        
+        console.log('initializeStep3 - rawFragments from DB:', rawFragments.length, rawFragments.map(f => ({
+            id: f.id,
+            order: f.fragment_order,
+            content: f.content.substring(0, 30),
+            emoji: f.emoji,
+            custom_word: f.custom_word,
+            custom_image: f.custom_image ? 'has image' : null
+        })));
+        
+        // Дедупликация и обновление currentFragments
+        const seenFragmentsInit = new Set();
+        currentFragments = [];
+        
+        rawFragments.forEach(f => {
+            const key = `${f.start_position}-${f.end_position}-${f.content}`;
+            if (!seenFragmentsInit.has(key)) {
+                seenFragmentsInit.add(key);
+                currentFragments.push({
+                    id: f.id,
+                    fragment_order: f.fragment_order,
+                    content: f.content,
+                    start_position: f.start_position,
+                    end_position: f.end_position,
+                    emoji: f.emoji || null,
+                    custom_word: f.custom_word || null,
+                    custom_image: f.custom_image || null
+                });
+            }
+        });
+        
+        currentFragments.sort((a, b) => a.fragment_order - b.fragment_order);
+        
+        console.log('initializeStep3 - currentFragments after reload:', currentFragments.length);
+        console.log('Fragments:', currentFragments.map(f => ({
+            order: f.fragment_order,
+            content: f.content.substring(0, 30),
+            emoji: f.emoji,
+            custom_word: f.custom_word
+        })));
+    } catch (error) {
+        console.error('Error reloading fragments in initializeStep3:', error);
     }
     
     // Загружаем все смайлики
@@ -1599,6 +1812,12 @@ function handleFinishWizard() {
 
 // Редактирование ассоциации фрагмента
 function editFragmentAssociation(fragmentIndex) {
+    // Проверяем, что индекс валиден
+    if (fragmentIndex < 0 || fragmentIndex >= currentFragments.length) {
+        console.error('Invalid fragment index:', fragmentIndex, 'currentFragments.length:', currentFragments.length);
+        return;
+    }
+    
     activeEmojiPosition = fragmentIndex;
     currentFragmentIndex = fragmentIndex;
     updateChainDisplay();

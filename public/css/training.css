@@ -9,24 +9,27 @@
 }
 
 .text-selection h2 {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: #2c3e50;
 }
 
 .training-texts {
     display: grid;
     gap: 1.5rem;
-    margin: 2rem 0;
+    margin: 1rem 0;
 }
 
 .training-text-item {
     background: white;
-    padding: 2rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .training-text-item:hover {
@@ -36,16 +39,8 @@
 
 .training-text-item h3 {
     color: #2c3e50;
-    margin-bottom: 1rem;
-}
-
-.training-text-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    color: #666;
-    font-size: 0.9rem;
+    margin: 0;
+    flex: 1;
 }
 
 .training-text-stats {
@@ -74,7 +69,7 @@
 
 .start-content {
     background: white;
-    padding: 3rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
     text-align: center;
@@ -82,14 +77,14 @@
 
 .start-content h2 {
     color: #2c3e50;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .timer-display {
     font-size: 3rem;
     font-weight: bold;
     color: #667eea;
-    margin: 2rem 0;
+    margin: 1rem 0;
     padding: 1.5rem;
     background: rgba(102, 126, 234, 0.1);
     border-radius: 12px;
@@ -98,7 +93,7 @@
 }
 
 .start-input-section {
-    margin: 2rem 0;
+    margin: 1rem 0;
     text-align: left;
 }
 
@@ -129,7 +124,7 @@
     background: #667eea;
     color: white;
     border: none;
-    padding: 1rem 3rem;
+    padding: 1rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -160,18 +155,23 @@ main .container {
     max-width: none;
 }
 
+
 /* Цепочка рассказа в хэдере */
 .story-chain .container {
     width: 90%;
     max-width: none;
 }
 
+.story-chain .chain-line {
+    margin: 0 auto;
+}
+
 .training-header {
     background: white;
-    padding: 2rem;
+    padding: 1rem;
     border-radius: 12px;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -260,7 +260,7 @@ main .container {
 }
 
 .current-fragment {
-    padding: 3rem 2rem;
+    padding: 1rem 1rem;
     text-align: center;
     min-height: 400px;
     display: flex;
@@ -276,7 +276,7 @@ main .container {
     font-size: 1rem;
     font-weight: bold;
     display: inline-block;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .fragment-display {
@@ -284,7 +284,7 @@ main .container {
 }
 
 .fragment-input-container {
-    margin: 2rem 0;
+    margin: 1rem 0 0 0;
     text-align: left;
 }
 
@@ -299,28 +299,31 @@ main .container {
     font-size: 1.5rem;
     line-height: 1.6;
     color: #2c3e50;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
     font-weight: 500;
-    padding: 1rem;
+    padding: 0 1rem;
     background: rgba(40, 167, 69, 0.1);
     border-radius: 8px;
-    text-align: center;
+    text-align: left;
     min-height: 3rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 #fragmentText {
     font-size: 1.5rem;
     line-height: 1.6;
     color: #2c3e50;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
+    margin-top: 0;
     font-weight: 500;
     min-height: 3rem;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    text-align: left;
+    padding-left: 1rem;
 }
 
 #fragmentText.hidden {
@@ -339,6 +342,15 @@ main .container {
     color: #6c757d;
     font-size: 1rem;
     font-style: italic;
+}
+
+.associations-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    min-height: 80px;
 }
 
 #fragmentAssociation {
@@ -386,7 +398,7 @@ main .container {
     font-size: 2rem;
     color: #667eea;
     font-weight: bold;
-    padding: 1rem 2rem;
+    padding: 1rem 1rem;
     border: 3px solid #667eea;
     border-radius: 12px;
     cursor: pointer;
@@ -401,6 +413,23 @@ main .container {
 
 .association-word.hidden {
     opacity: 0;
+}
+
+/* Убираем курсор и hover эффекты для смайликов в режиме тренировок */
+.training-mode-no-link {
+    cursor: default !important;
+}
+
+.training-mode-no-link:hover {
+    transform: none !important;
+    background: rgba(102, 126, 234, 0.1) !important;
+    color: #667eea !important;
+}
+
+.association-word.training-mode-no-link:hover {
+    background: transparent !important;
+    color: #667eea !important;
+    transform: none !important;
 }
 
 .number-only {
@@ -419,7 +448,7 @@ main .container {
 
 /* Подсказка следующего */
 .next-hint {
-    margin-top: 2rem;
+    margin-top: 0;
     padding: 1rem;
     background: rgba(102, 126, 234, 0.05);
     border-radius: 8px;
@@ -430,6 +459,7 @@ main .container {
     font-weight: 500;
     margin-bottom: 0.5rem;
     display: block;
+    text-align: center;
 }
 
 #nextAssociation {
@@ -459,7 +489,7 @@ main .container {
 
 /* Навигация */
 .navigation-controls {
-    padding: 2rem;
+    padding: 1rem;
     background: #f8f9fa;
     display: flex;
     justify-content: space-between;
@@ -471,7 +501,7 @@ main .container {
     background: #667eea;
     color: white;
     border: none;
-    padding: 1rem 2rem;
+    padding: 1rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -532,7 +562,7 @@ main .container {
 
 /* Завершение тренировки */
 .training-complete {
-    padding: 4rem 2rem;
+    padding: 4rem 1rem;
     text-align: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -571,7 +601,7 @@ main .container {
     }
     
     .start-content {
-        padding: 2rem 1.5rem;
+        padding: 1rem 1.5rem;
     }
     
     .timer-display {
@@ -603,7 +633,7 @@ main .container {
     }
     
     .current-fragment {
-        padding: 2rem 1rem;
+        padding: 1rem 1rem;
         min-height: 300px;
     }
     
@@ -636,10 +666,10 @@ main .container {
         flex-wrap: wrap;
     }
     
-    .training-text-meta {
+    .training-text-item {
         flex-direction: column;
-        gap: 1rem;
         align-items: flex-start;
+        gap: 1rem;
     }
     
     .training-text-stats {

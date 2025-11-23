@@ -1,0 +1,1308 @@
+[dotenv@17.2.2] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+Сервер запущен на порту 3000
+Подключение к SQLite базе данных установлено
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+Индекс создан успешно
+2025-11-22T16:34:19.420Z - GET /
+2025-11-22T16:34:19.480Z - GET /css/style.css
+2025-11-22T16:34:19.491Z - GET /js/app.js
+2025-11-22T16:34:19.495Z - GET /js/auth.js
+2025-11-22T16:34:19.497Z - GET /js/main.js
+2025-11-22T16:34:19.500Z - GET /css/auth.css
+2025-11-22T16:34:19.568Z - GET /favicon.ico
+2025-11-22T16:34:20.658Z - GET /api/texts/
+2025-11-22T16:34:22.580Z - GET /wizard.html?textId=14
+2025-11-22T16:34:22.622Z - GET /css/style.css
+2025-11-22T16:34:22.635Z - GET /js/app.js
+2025-11-22T16:34:22.637Z - GET /js/auth.js
+2025-11-22T16:34:22.638Z - GET /js/rangy-utils.js
+2025-11-22T16:34:22.638Z - GET /js/Fragment.js?v=1
+2025-11-22T16:34:22.640Z - GET /js/ErrorHandler.js?v=1
+2025-11-22T16:34:22.640Z - GET /js/fragmentUtils.js?v=1
+2025-11-22T16:34:22.661Z - GET /css/wizard.css
+2025-11-22T16:34:22.666Z - GET /js/FragmentCache.js?v=1
+2025-11-22T16:34:22.667Z - GET /js/fragmentAPI.js?v=1
+2025-11-22T16:34:22.667Z - GET /js/FragmentManager.js?v=2
+2025-11-22T16:34:22.671Z - GET /js/wizard.js?v=16
+2025-11-22T16:34:22.714Z - GET /api/wizard/text/14
+2025-11-22T16:34:22.729Z - GET /favicon.ico
+2025-11-22T16:34:22.737Z - GET /api/wizard/text/14
+2025-11-22T16:34:22.753Z - GET /api/wizard/text/14?t=1763829262749
+2025-11-22T16:34:22.756Z - GET /api/wizard/text/14?t=1763829262750
+2025-11-22T16:34:22.777Z - GET /api/wizard/all-emojis?language=de
+2025-11-22T16:34:22.783Z - GET /api/wizard/all-emojis?language=de
+2025-11-22T16:34:22.792Z - GET /api/wizard/emojis/translate?text=Viele%20Menschen%20heiraten%20etwa%20zwischen%2020%20und%2030.&maxEmojis=10
+Searching emojis for text: "Viele Menschen heiraten etwa zwischen 20 und 30."
+Detected language: de
+Finding emojis with iterative ontology for text: "Viele Menschen heiraten etwa zwischen 20 und 30."
+Processing all 4 words: [ 'menschen', 'heiraten', 'etwa', 'zwischen' ]
+Processing word: "menschen"
+No translation found for "menschen", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Processing word: "etwa"
+No translation found for "etwa", skipping word
+Processing word: "zwischen"
+No translation found for "zwischen", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:34:24.235Z - GET /api/wizard/emojis/translate?text=Viele%20Menschen%20heiraten%20etwa%20zwischen%2020%20und%2030.&maxEmojis=10
+Searching emojis for text: "Viele Menschen heiraten etwa zwischen 20 und 30."
+Detected language: de
+Finding emojis with iterative ontology for text: "Viele Menschen heiraten etwa zwischen 20 und 30."
+Processing all 4 words: [ 'menschen', 'heiraten', 'etwa', 'zwischen' ]
+Processing word: "menschen"
+No translation found for "menschen", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Processing word: "etwa"
+No translation found for "etwa", skipping word
+Processing word: "zwischen"
+No translation found for "zwischen", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:34:31.235Z - GET /api/wizard/categories
+2025-11-22T16:34:31.238Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:34:53.062Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1956
+Emoji: 👩‍❤️‍👨
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1956,
+  content: 'Viele Menschen heiraten etwa zwischen 20 und 30....',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1956
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:34:53.085Z - GET /api/wizard/emojis/translate?text=Einige%20Freunde%20von%20mir%20haben%20noch%20an%20der%20Uni%20geheiratet.&maxEmojis=10
+Searching emojis for text: "Einige Freunde von mir haben noch an der Uni geheiratet."
+Detected language: de
+Finding emojis with iterative ontology for text: "Einige Freunde von mir haben noch an der Uni geheiratet."
+Processing all 4 words: [ 'einige', 'freunde', 'uni', 'geheiratet' ]
+Processing word: "einige"
+No translation found for "einige", skipping word
+Processing word: "freunde"
+No translation found for "freunde", skipping word
+Processing word: "uni"
+No translation found for "uni", skipping word
+Processing word: "geheiratet"
+No translation found for "geheiratet", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:35:01.945Z - GET /api/wizard/categories
+2025-11-22T16:35:01.955Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:35:13.604Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1957
+Emoji: 🤝
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1957,
+  content: 'Einige Freunde von mir haben noch an der Uni gehei...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1957
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:35:13.631Z - GET /api/wizard/emojis/translate?text=Ich%20habe%20auch%20Bekannte%2C%20die%20schon%20%C3%BCber%2030%20sind%2C%20und%20sie%20haben%20noch%20nicht%20geheiratet.&maxEmojis=10
+Searching emojis for text: "Ich habe auch Bekannte, die schon über 30 sind, und sie haben noch nicht geheiratet."
+Detected language: de
+Finding emojis with iterative ontology for text: "Ich habe auch Bekannte, die schon über 30 sind, und sie haben noch nicht geheiratet."
+Processing all 3 words: [ 'bekannte', 'sie', 'geheiratet' ]
+Processing word: "bekannte"
+No translation found for "bekannte", skipping word
+Processing word: "sie"
+Multiple translations for "sie": [they, thei]
+Skipping abstract translated word: "they"
+Direct emojis for "thei": 0
+Searching ontology graph for "thei"
+Found ontology words: []
+Processing word: "geheiratet"
+No translation found for "geheiratet", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:35:34.880Z - GET /api/wizard/categories
+2025-11-22T16:35:34.885Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:35:50.183Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1958
+Emoji: undefined
+Custom Image length: 0
+Custom Word: 30
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1958,
+  content: 'Ich habe auch Bekannte, die schon über 30 sind, un...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1958
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:35:50.220Z - GET /api/wizard/emojis/translate?text=Einige%20wollen%20sogar%20nie%20heiraten.&maxEmojis=10
+Searching emojis for text: "Einige wollen sogar nie heiraten."
+Detected language: en
+Finding emojis with iterative ontology for text: "Einige wollen sogar nie heiraten."
+Processing all 2 words: [ 'einige', 'heiraten' ]
+Processing word: "einige"
+No translation found for "einige", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:36:07.062Z - GET /api/wizard/categories
+2025-11-22T16:36:07.066Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:36:18.385Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1971
+Emoji: 🚶
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1971,
+  content: 'Einige wollen sogar nie heiraten....',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1971
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:36:18.410Z - GET /api/wizard/emojis/translate?text=Kommen%20wir%20zu%20den%20Vor-%20und%20Nachteilen.%20Was%20sind%20die%20Vorteile%3F&maxEmojis=10
+Searching emojis for text: "Kommen wir zu den Vor- und Nachteilen. Was sind die Vorteile?"
+Detected language: de
+Finding emojis with iterative ontology for text: "Kommen wir zu den Vor- und Nachteilen. Was sind die Vorteile?"
+Processing all 6 words: [ 'kommen', 'wir', 'den', 'vor', 'nachteilen', 'vorteile' ]
+Processing word: "kommen"
+Multiple translations for "kommen": [come]
+Direct emojis for "come": 1
+Searching ontology graph for "come"
+Found ontology words: []
+Processing word: "wir"
+No translation found for "wir", skipping word
+Processing word: "den"
+No translation found for "den", skipping word
+Processing word: "vor"
+Multiple translations for "vor": [before, befor]
+Skipping abstract translated word: "before"
+Direct emojis for "befor": 0
+Searching ontology graph for "befor"
+Found ontology words: []
+Processing word: "nachteilen"
+No translation found for "nachteilen", skipping word
+Processing word: "vorteile"
+Multiple translations for "vorteile": [advantages, advantag]
+Direct emojis for "advantages": 0
+Searching ontology graph for "advantages"
+Found ontology words: []
+Direct emojis for "advantag": 1
+Searching ontology graph for "advantag"
+Found ontology words: []
+Found 2 unique emojis with iterative ontology
+2025-11-22T16:36:22.436Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1960
+Emoji: ☄️
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1960,
+  content: 'Kommen wir zu den Vor- und Nachteilen. Was sind di...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1960
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:36:22.458Z - GET /api/wizard/emojis/translate?text=Wenn%20man%20entscheidet%2C%20zu%20warten%2C%20kann%20der%20Partner%20aus%20verschiedenen%20Gr%C3%BCnden%20verschwinden.&maxEmojis=10
+Searching emojis for text: "Wenn man entscheidet, zu warten, kann der Partner aus verschiedenen Gründen verschwinden."
+Detected language: de
+Finding emojis with iterative ontology for text: "Wenn man entscheidet, zu warten, kann der Partner aus verschiedenen Gründen verschwinden."
+Processing all 7 words: [
+  'man',
+  'entscheidet',
+  'warten',
+  'partner',
+  'verschiedenen',
+  'gründen',
+  'verschwinden'
+]
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "entscheidet"
+No translation found for "entscheidet", skipping word
+Processing word: "warten"
+No translation found for "warten", skipping word
+Processing word: "partner"
+No translation found for "partner", skipping word
+Processing word: "verschiedenen"
+No translation found for "verschiedenen", skipping word
+Processing word: "gründen"
+No translation found for "gründen", skipping word
+Processing word: "verschwinden"
+No translation found for "verschwinden", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:36:32.715Z - GET /api/wizard/categories
+2025-11-22T16:36:32.717Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:36:43.766Z - GET /api/wizard/emojis/category/symbols
+2025-11-22T16:36:50.384Z - GET /api/wizard/emojis/category/objects
+2025-11-22T16:37:01.701Z - GET /api/wizard/emojis/search?q=d&language=de
+[emoji-search] q="d" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "d"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1071 deduped=1071
+2025-11-22T16:37:01.819Z - GET /api/wizard/emojis/search?q=dh&language=de
+[emoji-search] q="dh" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "dh"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=5 deduped=5
+2025-11-22T16:37:01.973Z - GET /api/wizard/emojis/search?q=dht&language=de
+[emoji-search] q="dht" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "dht"
+Processing all 1 words: [ 'dht' ]
+Processing word: "dht"
+No translation found for "dht", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=0 deduped=0
+2025-11-22T16:37:02.686Z - GET /api/wizard/emojis/search?q=dh&language=de
+[emoji-search] q="dh" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "dh"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=5 deduped=5
+2025-11-22T16:37:02.847Z - GET /api/wizard/emojis/search?q=d&language=de
+[emoji-search] q="d" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "d"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1071 deduped=1071
+2025-11-22T16:37:03.011Z - GET /api/wizard/emojis/category/objects
+2025-11-22T16:37:04.341Z - GET /api/wizard/emojis/search?q=%D0%B2&language=ru
+[emoji-search] q="в" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=61
+[emoji-search] results=50 deduped=50
+2025-11-22T16:37:04.638Z - GET /api/wizard/emojis/search?q=%D0%B2%D1%80&language=ru
+[emoji-search] q="вр" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:37:04.794Z - GET /api/wizard/emojis/search?q=%D0%B2%D1%80%D0%B5&language=ru
+[emoji-search] q="вре" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:37:05.499Z - GET /api/wizard/emojis/search?q=%D0%B2%D1%80&language=ru
+[emoji-search] q="вр" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:37:05.669Z - GET /api/wizard/emojis/search?q=%D0%B2&language=ru
+[emoji-search] q="в" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=61
+[emoji-search] results=50 deduped=50
+2025-11-22T16:37:05.825Z - GET /api/wizard/emojis/category/objects
+2025-11-22T16:37:06.041Z - GET /api/wizard/emojis/search?q=%D1%87&language=ru
+[emoji-search] q="ч" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=20
+[emoji-search] results=20 deduped=20
+2025-11-22T16:37:06.263Z - GET /api/wizard/emojis/search?q=%D1%87%D0%B0&language=ru
+[emoji-search] q="ча" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=3
+[emoji-search] results=3 deduped=3
+2025-11-22T16:37:06.502Z - GET /api/wizard/emojis/search?q=%D1%87%D0%B0%D1%81&language=ru
+[emoji-search] q="час" lang=ru isCyrillic=true
+[emoji-search][ru] direct=1
+[emoji-search][ru] fallbackAdds=1
+[emoji-search] results=2 deduped=1
+2025-11-22T16:37:07.656Z - GET /api/wizard/emojis/search?q=%D1%87%D0%B0&language=ru
+[emoji-search] q="ча" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=3
+[emoji-search] results=3 deduped=3
+2025-11-22T16:37:07.969Z - GET /api/wizard/emojis/search?q=%D1%87&language=ru
+[emoji-search] q="ч" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=20
+[emoji-search] results=20 deduped=20
+2025-11-22T16:37:09.304Z - GET /api/wizard/emojis/category/objects
+2025-11-22T16:37:10.875Z - GET /api/wizard/emojis/search?q=t&language=de
+[emoji-search] q="t" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "t"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1637 deduped=1637
+2025-11-22T16:37:11.079Z - GET /api/wizard/emojis/search?q=ti&language=de
+[emoji-search] q="ti" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "ti"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=644 deduped=644
+2025-11-22T16:37:11.269Z - GET /api/wizard/emojis/search?q=tim&language=de
+[emoji-search] q="tim" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "tim"
+Processing all 1 words: [ 'tim' ]
+Processing word: "tim"
+No translation found for "tim", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=34 deduped=34
+2025-11-22T16:37:20.432Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1961
+Emoji: ⏳
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1961,
+  content: 'Wenn man entscheidet, zu warten, kann der Partner ...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1961
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:37:20.455Z - GET /api/wizard/emojis/translate?text=Derzeit%20hat%20man%20einen%20Partner%2C%20und%20das%20ist%20ein%20Vorteil.&maxEmojis=10
+Searching emojis for text: "Derzeit hat man einen Partner, und das ist ein Vorteil."
+Detected language: de
+Finding emojis with iterative ontology for text: "Derzeit hat man einen Partner, und das ist ein Vorteil."
+Processing all 4 words: [ 'derzeit', 'man', 'partner', 'vorteil' ]
+Processing word: "derzeit"
+No translation found for "derzeit", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "partner"
+No translation found for "partner", skipping word
+Processing word: "vorteil"
+Multiple translations for "vorteil": [advantage, advantag]
+Direct emojis for "advantage": 1
+Searching ontology graph for "advantage"
+Found ontology words: []
+Direct emojis for "advantag": 1
+Searching ontology graph for "advantag"
+Found ontology words: []
+Found 1 unique emojis with iterative ontology
+2025-11-22T16:37:34.681Z - GET /api/wizard/categories
+2025-11-22T16:37:34.686Z - GET /api/wizard/emojis/category/objects
+2025-11-22T16:37:53.805Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:38:03.408Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1962
+Emoji: 👍
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1962,
+  content: 'Derzeit hat man einen Partner, und das ist ein Vor...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1962
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:38:03.429Z - GET /api/wizard/emojis/translate?text=Wenn%20die%20Ehe%20scheitert%2C%20wird%20man%20noch%20jung%20genug%20sein%2C%20um%20erneut%20zu%20heiraten%20und%20Kinder%20zu%20bekommen.&maxEmojis=10
+Searching emojis for text: "Wenn die Ehe scheitert, wird man noch jung genug sein, um erneut zu heiraten und Kinder zu bekommen."
+Detected language: de
+Finding emojis with iterative ontology for text: "Wenn die Ehe scheitert, wird man noch jung genug sein, um erneut zu heiraten und Kinder zu bekommen."
+Processing all 9 words: [
+  'ehe',      'scheitert',
+  'man',      'jung',
+  'genug',    'erneut',
+  'heiraten', 'kinder',
+  'bekommen'
+]
+Processing word: "ehe"
+No translation found for "ehe", skipping word
+Processing word: "scheitert"
+No translation found for "scheitert", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "jung"
+Multiple translations for "jung": [young]
+Direct emojis for "young": 1
+Searching ontology graph for "young"
+Found ontology words: []
+Processing word: "genug"
+No translation found for "genug", skipping word
+Processing word: "erneut"
+No translation found for "erneut", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Processing word: "kinder"
+Multiple translations for "kinder": [child]
+Direct emojis for "child": 3
+Searching ontology graph for "child"
+Found ontology words: []
+Processing word: "bekommen"
+No translation found for "bekommen", skipping word
+Found 3 unique emojis with iterative ontology
+2025-11-22T16:38:09.816Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1963
+Emoji: 🧒
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1963,
+  content: 'Wenn die Ehe scheitert, wird man noch jung genug s...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1963
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:38:09.842Z - GET /api/wizard/emojis/translate?text=Hier%20gibt%20es%20jedoch%20auch%20einen%20gro%C3%9Fen%20Nachteil.&maxEmojis=10
+Searching emojis for text: "Hier gibt es jedoch auch einen großen Nachteil."
+Detected language: de
+Finding emojis with iterative ontology for text: "Hier gibt es jedoch auch einen großen Nachteil."
+Processing all 3 words: [ 'gibt', 'großen', 'nachteil' ]
+Processing word: "gibt"
+No translation found for "gibt", skipping word
+Processing word: "großen"
+No translation found for "großen", skipping word
+Processing word: "nachteil"
+Multiple translations for "nachteil": [disadvantage, disadvantag]
+Direct emojis for "disadvantage": 0
+Searching ontology graph for "disadvantage"
+Found ontology words: []
+Direct emojis for "disadvantag": 0
+Searching ontology graph for "disadvantag"
+Found ontology words: []
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:38:16.808Z - GET /api/wizard/categories
+2025-11-22T16:38:16.811Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:38:20.433Z - GET /api/wizard/emojis/search?q=im&language=de
+[emoji-search] q="im" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "im"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=201 deduped=201
+2025-11-22T16:38:20.629Z - GET /api/wizard/emojis/search?q=m&language=de
+[emoji-search] q="m" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "m"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1068 deduped=1068
+2025-11-22T16:38:20.786Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:38:21.857Z - GET /api/wizard/emojis/search?q=m&language=de
+[emoji-search] q="m" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "m"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1068 deduped=1068
+2025-11-22T16:38:21.952Z - GET /api/wizard/emojis/search?q=mi&language=de
+[emoji-search] q="mi" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "mi"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=136 deduped=136
+2025-11-22T16:38:23.826Z - GET /api/wizard/emojis/search?q=min&language=de
+[emoji-search] q="min" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "min"
+Processing all 1 words: [ 'min' ]
+Processing word: "min"
+No translation found for "min", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=36 deduped=36
+2025-11-22T16:38:23.925Z - GET /api/wizard/emojis/search?q=minu&language=de
+[emoji-search] q="minu" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "minu"
+Processing all 1 words: [ 'minu' ]
+Processing word: "minu"
+No translation found for "minu", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1 deduped=1
+2025-11-22T16:38:27.971Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1964
+Emoji: ➖
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1964,
+  content: 'Hier gibt es jedoch auch einen großen Nachteil....',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1964
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:38:27.996Z - GET /api/wizard/emojis/translate?text=Nur%20indem%20man%20etwas%20Zeit%20mit%20der%20Partner%20verbringt%2C%20kann%20man%20verstehen%2C%20wer%20man%20wirklich%20braucht.&maxEmojis=10
+Searching emojis for text: "Nur indem man etwas Zeit mit der Partner verbringt, kann man verstehen, wer man wirklich braucht."
+Detected language: de
+Finding emojis with iterative ontology for text: "Nur indem man etwas Zeit mit der Partner verbringt, kann man verstehen, wer man wirklich braucht."
+Processing all 10 words: [
+  'indem',     'man',
+  'zeit',      'partner',
+  'verbringt', 'man',
+  'verstehen', 'man',
+  'wirklich',  'braucht'
+]
+Processing word: "indem"
+No translation found for "indem", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "zeit"
+Multiple translations for "zeit": [time, moment, period, duration, hour]
+Direct emojis for "time": 3
+Searching ontology graph for "time"
+Found ontology words: [
+  'morning', 'afternoon',
+  'evening', 'night',
+  'day',     'time',
+  'sunrise', 'breakfast'
+]
+Emojis for ontology word "morning": 2
+Emojis for ontology word "afternoon": 1
+Emojis for ontology word "evening": 2
+Emojis for ontology word "night": 2
+Emojis for ontology word "day": 2
+Found sufficient emojis for word "zeit", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-22T16:38:40.194Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1965
+Emoji: ⌛
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1965,
+  content: 'Nur indem man etwas Zeit mit der Partner verbringt...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1965
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:38:40.216Z - GET /api/wizard/emojis/translate?text=Ich%20pers%C3%B6nlich%20denke%2C%20dass%20man%20sich%20vor%20einer%20Heirat%20in%20jungem%20Alter%20eine%20Frage%20stellen%20sollte%3A&maxEmojis=10
+Searching emojis for text: "Ich persönlich denke, dass man sich vor einer Heirat in jungem Alter eine Frage stellen sollte:"
+Detected language: de
+Finding emojis with iterative ontology for text: "Ich persönlich denke, dass man sich vor einer Heirat in jungem Alter eine Frage stellen sollte:"
+Processing all 9 words: [
+  'persönlich', 'denke',
+  'man',        'vor',
+  'heirat',     'jungem',
+  'alter',      'frage',
+  'stellen'
+]
+Processing word: "persönlich"
+No translation found for "persönlich", skipping word
+Processing word: "denke"
+No translation found for "denke", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "vor"
+Multiple translations for "vor": [before, befor]
+Skipping abstract translated word: "before"
+Direct emojis for "befor": 0
+Searching ontology graph for "befor"
+Found ontology words: []
+Processing word: "heirat"
+No translation found for "heirat", skipping word
+Processing word: "jungem"
+No translation found for "jungem", skipping word
+Processing word: "alter"
+No translation found for "alter", skipping word
+Processing word: "frage"
+Multiple translations for "frage": [question]
+Direct emojis for "question": 3
+Searching ontology graph for "question"
+Found ontology words: []
+Processing word: "stellen"
+No translation found for "stellen", skipping word
+Found 3 unique emojis with iterative ontology
+2025-11-22T16:38:51.573Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1966
+Emoji: ❓
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1966,
+  content: 'Ich persönlich denke, dass man sich vor einer Heir...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1966
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:38:51.593Z - GET /api/wizard/emojis/translate?text=Welche%20meiner%20Interessen%20haben%20mich%20dazu%20gef%C3%BChrt%2C%20ausgerechnet%20diese%20Person%20zu%20treffen%20und%20nicht%20jemand%20anderen%3F&maxEmojis=10
+Searching emojis for text: "Welche meiner Interessen haben mich dazu geführt, ausgerechnet diese Person zu treffen und nicht jemand anderen?"
+Detected language: de
+Finding emojis with iterative ontology for text: "Welche meiner Interessen haben mich dazu geführt, ausgerechnet diese Person zu treffen und nicht jemand anderen?"
+Processing all 8 words: [
+  'meiner',
+  'interessen',
+  'dazu',
+  'geführt',
+  'ausgerechnet',
+  'person',
+  'treffen',
+  'anderen'
+]
+Processing word: "meiner"
+No translation found for "meiner", skipping word
+Processing word: "interessen"
+No translation found for "interessen", skipping word
+Processing word: "dazu"
+No translation found for "dazu", skipping word
+Processing word: "geführt"
+No translation found for "geführt", skipping word
+Processing word: "ausgerechnet"
+No translation found for "ausgerechnet", skipping word
+Processing word: "person"
+No translation found for "person", skipping word
+Processing word: "treffen"
+No translation found for "treffen", skipping word
+Processing word: "anderen"
+No translation found for "anderen", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:39:05.474Z - GET /api/wizard/categories
+2025-11-22T16:39:05.477Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:39:13.490Z - GET /api/wizard/emojis/search?q=c&language=de
+[emoji-search] q="c" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "c"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1410 deduped=1410
+2025-11-22T16:39:13.659Z - GET /api/wizard/emojis/search?q=cl&language=de
+[emoji-search] q="cl" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "cl"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=179 deduped=179
+2025-11-22T16:39:13.864Z - GET /api/wizard/emojis/search?q=cli&language=de
+[emoji-search] q="cli" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "cli"
+Processing all 1 words: [ 'cli' ]
+Processing word: "cli"
+No translation found for "cli", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=15 deduped=15
+2025-11-22T16:39:22.577Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1967
+Emoji: 🧗
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1967,
+  content: 'Welche meiner Interessen haben mich dazu geführt, ...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1967
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:39:22.603Z - GET /api/wizard/emojis/translate?text=Und%20wenn%20die%20Antwort%20lautet%2C%20dass%20diese%20Person%20zuf%C3%A4llig%20in%20der%20N%C3%A4he%20war%2C%20dann%20ist%20es%20zu%20fr%C3%BCh%20zu%20heiraten&maxEmojis=10
+Searching emojis for text: "Und wenn die Antwort lautet, dass diese Person zufällig in der Nähe war, dann ist es zu früh zu heiraten"
+Detected language: de
+Finding emojis with iterative ontology for text: "Und wenn die Antwort lautet, dass diese Person zufällig in der Nähe war, dann ist es zu früh zu heiraten"
+Processing all 7 words: [
+  'antwort',  'lautet',
+  'person',   'zufällig',
+  'nähe',     'früh',
+  'heiraten'
+]
+Processing word: "antwort"
+No translation found for "antwort", skipping word
+Processing word: "lautet"
+No translation found for "lautet", skipping word
+Processing word: "person"
+No translation found for "person", skipping word
+Processing word: "zufällig"
+No translation found for "zufällig", skipping word
+Processing word: "nähe"
+Multiple translations for "nähe": [near]
+Direct emojis for "near": 0
+Searching ontology graph for "near"
+Found ontology words: []
+Processing word: "früh"
+No translation found for "früh", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:39:34.848Z - GET /api/wizard/categories
+2025-11-22T16:39:34.850Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:39:38.012Z - GET /api/wizard/emojis/search?q=c&language=de
+[emoji-search] q="c" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "c"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1410 deduped=1410
+2025-11-22T16:39:38.174Z - GET /api/wizard/emojis/search?q=ck&language=de
+[emoji-search] q="ck" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "ck"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=175 deduped=175
+2025-11-22T16:39:38.833Z - GET /api/wizard/emojis/search?q=c&language=de
+[emoji-search] q="c" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "c"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1410 deduped=1410
+2025-11-22T16:39:38.988Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:39:39.865Z - GET /api/wizard/emojis/search?q=%D1%81&language=ru
+[emoji-search] q="с" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=73
+[emoji-search] results=50 deduped=50
+2025-11-22T16:39:39.955Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB&language=ru
+[emoji-search] q="сл" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=1
+[emoji-search] results=1 deduped=1
+2025-11-22T16:39:40.094Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB%D1%86&language=ru
+[emoji-search] q="слц" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:39:40.107Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB%D1%86%D1%83&language=ru
+[emoji-search] q="слцу" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:39:40.650Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB%D1%86&language=ru
+[emoji-search] q="слц" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:39:40.810Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB&language=ru
+[emoji-search] q="сл" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=1
+[emoji-search] results=1 deduped=1
+2025-11-22T16:39:40.939Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB%D1%83&language=ru
+[emoji-search] q="слу" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=0
+[emoji-search] results=0 deduped=0
+2025-11-22T16:39:41.627Z - GET /api/wizard/emojis/search?q=%D1%81%D0%BB&language=ru
+[emoji-search] q="сл" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=1
+[emoji-search] results=1 deduped=1
+2025-11-22T16:39:41.791Z - GET /api/wizard/emojis/search?q=%D1%81&language=ru
+[emoji-search] q="с" lang=ru isCyrillic=true
+[emoji-search][ru] direct=0
+[emoji-search][ru] fallbackAdds=73
+[emoji-search] results=50 deduped=50
+2025-11-22T16:39:41.964Z - GET /api/wizard/emojis/category/people
+2025-11-22T16:39:43.009Z - GET /api/wizard/emojis/search?q=r&language=de
+[emoji-search] q="r" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "r"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=1706 deduped=1706
+2025-11-22T16:39:43.229Z - GET /api/wizard/emojis/search?q=ra&language=de
+[emoji-search] q="ra" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "ra"
+Processing all 0 words: []
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=321 deduped=321
+2025-11-22T16:39:43.369Z - GET /api/wizard/emojis/search?q=ran&language=de
+[emoji-search] q="ran" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "ran"
+Processing all 1 words: [ 'ran' ]
+Processing word: "ran"
+No translation found for "ran", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=90 deduped=90
+2025-11-22T16:39:44.102Z - GET /api/wizard/emojis/search?q=rand&language=de
+[emoji-search] q="rand" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "rand"
+Processing all 1 words: [ 'rand' ]
+Processing word: "rand"
+No translation found for "rand", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=3 deduped=3
+2025-11-22T16:39:44.276Z - GET /api/wizard/emojis/search?q=rando&language=de
+[emoji-search] q="rando" lang=de isCyrillic=false
+Detected language: en
+Finding emojis with iterative ontology for text: "rando"
+Processing all 1 words: [ 'rando' ]
+Processing word: "rando"
+No translation found for "rando", skipping word
+Found 0 unique emojis with iterative ontology
+[emoji-search] results=2 deduped=2
+2025-11-22T16:39:47.367Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1968
+Emoji: 🎲
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1968,
+  content: 'Und wenn die Antwort lautet, dass diese Person zuf...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1968
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:39:47.384Z - GET /api/wizard/emojis/translate?text=Das%20w%C3%A4re%20alles.%20Haben%20sie%20noch%20Fragen%3F&maxEmojis=10
+Searching emojis for text: "Das wäre alles. Haben sie noch Fragen?"
+Detected language: de
+Finding emojis with iterative ontology for text: "Das wäre alles. Haben sie noch Fragen?"
+Processing all 3 words: [ 'wäre', 'sie', 'fragen' ]
+Processing word: "wäre"
+No translation found for "wäre", skipping word
+Processing word: "sie"
+Multiple translations for "sie": [they, thei]
+Skipping abstract translated word: "they"
+Direct emojis for "thei": 0
+Searching ontology graph for "thei"
+Found ontology words: []
+Processing word: "fragen"
+Multiple translations for "fragen": [questions, question]
+Direct emojis for "questions": 0
+Searching ontology graph for "questions"
+Found ontology words: []
+Direct emojis for "question": 3
+Searching ontology graph for "question"
+Found ontology words: []
+Found 3 unique emojis with iterative ontology
+2025-11-22T16:39:56.742Z - GET /api/wizard/emojis/translate?text=Und%20wenn%20die%20Antwort%20lautet%2C%20dass%20diese%20Person%20zuf%C3%A4llig%20in%20der%20N%C3%A4he%20war%2C%20dann%20ist%20es%20zu%20fr%C3%BCh%20zu%20heiraten&maxEmojis=10
+Searching emojis for text: "Und wenn die Antwort lautet, dass diese Person zufällig in der Nähe war, dann ist es zu früh zu heiraten"
+Detected language: de
+Finding emojis with iterative ontology for text: "Und wenn die Antwort lautet, dass diese Person zufällig in der Nähe war, dann ist es zu früh zu heiraten"
+Processing all 7 words: [
+  'antwort',  'lautet',
+  'person',   'zufällig',
+  'nähe',     'früh',
+  'heiraten'
+]
+Processing word: "antwort"
+No translation found for "antwort", skipping word
+Processing word: "lautet"
+No translation found for "lautet", skipping word
+Processing word: "person"
+No translation found for "person", skipping word
+Processing word: "zufällig"
+No translation found for "zufällig", skipping word
+Processing word: "nähe"
+Multiple translations for "nähe": [near]
+Direct emojis for "near": 0
+Searching ontology graph for "near"
+Found ontology words: []
+Processing word: "früh"
+No translation found for "früh", skipping word
+Processing word: "heiraten"
+No translation found for "heiraten", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-22T16:40:05.622Z - GET /api/wizard/emojis/translate?text=Das%20w%C3%A4re%20alles.%20Haben%20sie%20noch%20Fragen%3F&maxEmojis=10
+Searching emojis for text: "Das wäre alles. Haben sie noch Fragen?"
+Detected language: de
+Finding emojis with iterative ontology for text: "Das wäre alles. Haben sie noch Fragen?"
+Processing all 3 words: [ 'wäre', 'sie', 'fragen' ]
+Processing word: "wäre"
+No translation found for "wäre", skipping word
+Processing word: "sie"
+Multiple translations for "sie": [they, thei]
+Skipping abstract translated word: "they"
+Direct emojis for "thei": 0
+Searching ontology graph for "thei"
+Found ontology words: []
+Processing word: "fragen"
+Multiple translations for "fragen": [questions, question]
+Direct emojis for "questions": 0
+Searching ontology graph for "questions"
+Found ontology words: []
+Direct emojis for "question": 3
+Searching ontology graph for "question"
+Found ontology words: []
+Found 3 unique emojis with iterative ontology
+2025-11-22T16:40:08.175Z - POST /api/wizard/associate
+=== ASSOCIATE REQUEST ===
+Fragment ID: 1969
+Emoji: 🙋
+Custom Image length: 0
+Custom Word: undefined
+User ID: 2
+SUCCESS: Fragment found: {
+  id: 1969,
+  content: 'Das wäre alles. Haben sie noch Fragen?...',
+  text_id: 14
+}
+SUCCESS: Association saved for fragment: 1969
+=== ASSOCIATE REQUEST COMPLETE ===
+2025-11-22T16:40:08.194Z - GET /api/wizard/emojis/translate?text=Guten%20Tag.%20Mein%20Thema%20hei%C3%9Ft%20%E2%80%9CJung%20heiraten%E2%80%9D.%20In%20meiner%20Pr%C3%A4sentation%20spreche%20ich%20zuerst%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen%2C%20dann%20%C3%BCber%20die%20Situation%20in%20meinem%20Heimatland.%20Danach%20wiege%20ich%20Vor-%20und%20Nachteile%20ab%20und%20%C3%A4u%C3%9Fere%20meine%20Meinung.%20Am%20Ende%20k%C3%B6nnen%20Sie%20mir%20nat%C3%BCrlich%20noch%20Fragen%20stellen.%0A%0AZuerst%20spreche%20ich%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen.&maxEmojis=10
+Searching emojis for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Detected language: de
+Finding emojis with iterative ontology for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Processing all 30 words: [
+  'guten',     'tag',          'thema',
+  'heißt',     'jung',         'heiraten',
+  'meiner',    'präsentation', 'spreche',
+  'zuerst',    'persönlichen', 'erfahrungen',
+  'situation', 'meinem',       'heimatland',
+  'danach',    'wiege',        'vor',
+  'nachteile', 'äußere',       'meinung',
+  'ende',      'sie',          'natürlich',
+  'fragen',    'stellen',      'zuerst',
+  'spreche',   'persönlichen', 'erfahrungen'
+]
+Processing word: "guten"
+Multiple translations for "guten": [good]
+Direct emojis for "good": 3
+Searching ontology graph for "good"
+Found ontology words: []
+Processing word: "tag"
+Multiple translations for "tag": [day, dai, date, time, period, daytime]
+Direct emojis for "day": 3
+Searching ontology graph for "day"
+Found ontology words: [
+  'time',      'morning',
+  'afternoon', 'evening',
+  'night',     'day',
+  'sun',       'weather'
+]
+Emojis for ontology word "time": 2
+Emojis for ontology word "morning": 2
+Found sufficient emojis for word "tag", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-22T16:40:16.830Z - GET /
+2025-11-22T16:40:16.889Z - GET /js/app.js
+2025-11-22T16:40:16.890Z - GET /js/auth.js
+2025-11-22T16:40:16.891Z - GET /js/main.js
+2025-11-22T16:40:16.896Z - GET /css/style.css
+2025-11-22T16:40:16.901Z - GET /css/auth.css
+2025-11-22T16:40:16.959Z - GET /favicon.ico
+2025-11-22T16:40:17.931Z - GET /training
+2025-11-22T16:40:17.983Z - GET /js/app.js
+2025-11-22T16:40:17.985Z - GET /js/auth.js
+2025-11-22T16:40:17.986Z - GET /js/training.js
+2025-11-22T16:40:17.988Z - GET /css/style.css
+2025-11-22T16:40:17.989Z - GET /css/training.css
+2025-11-22T16:40:18.023Z - GET /api/training/available
+2025-11-22T16:40:18.038Z - GET /favicon.ico
+2025-11-22T16:40:19.537Z - GET /api/training/text/14
+2025-11-22T16:40:19.547Z - GET /favicon.ico
+2025-11-22T16:46:15.465Z - POST /api/training/session
+2025-11-23T04:38:33.290Z - GET /api/training/available
+2025-11-23T04:38:33.305Z - GET /favicon.ico
+2025-11-23T04:38:34.770Z - GET /api/training/text/14
+2025-11-23T04:38:34.776Z - GET /favicon.ico
+2025-11-23T04:38:43.019Z - GET /
+2025-11-23T04:38:43.076Z - GET /css/style.css
+2025-11-23T04:38:43.083Z - GET /js/app.js
+2025-11-23T04:38:43.084Z - GET /js/auth.js
+2025-11-23T04:38:43.085Z - GET /css/auth.css
+2025-11-23T04:38:43.085Z - GET /js/main.js
+2025-11-23T04:38:43.143Z - GET /favicon.ico
+2025-11-23T04:38:44.626Z - GET /training
+2025-11-23T04:38:44.673Z - GET /css/style.css
+2025-11-23T04:38:44.677Z - GET /js/app.js
+2025-11-23T04:38:44.679Z - GET /js/auth.js
+2025-11-23T04:38:44.681Z - GET /js/training.js
+2025-11-23T04:38:44.682Z - GET /css/training.css
+2025-11-23T04:38:44.713Z - GET /api/training/available
+2025-11-23T04:38:44.727Z - GET /favicon.ico
+2025-11-23T04:38:46.044Z - GET /api/training/text/14
+2025-11-23T04:38:46.054Z - GET /favicon.ico
+2025-11-23T04:44:11.494Z - POST /api/training/session
+2025-11-23T04:44:54.745Z - GET /
+2025-11-23T04:44:54.801Z - GET /css/style.css
+2025-11-23T04:44:54.808Z - GET /js/app.js
+2025-11-23T04:44:54.810Z - GET /js/auth.js
+2025-11-23T04:44:54.810Z - GET /js/main.js
+2025-11-23T04:44:54.812Z - GET /css/auth.css
+2025-11-23T04:44:54.866Z - GET /favicon.ico
+2025-11-23T05:00:00.976Z - GET /training
+2025-11-23T05:00:01.021Z - GET /css/style.css
+2025-11-23T05:00:01.027Z - GET /js/app.js
+2025-11-23T05:00:01.028Z - GET /js/auth.js
+2025-11-23T05:00:01.030Z - GET /js/training.js
+2025-11-23T05:00:01.031Z - GET /css/training.css
+2025-11-23T05:00:01.064Z - GET /api/training/available
+2025-11-23T05:00:01.081Z - GET /favicon.ico
+2025-11-23T05:00:02.898Z - GET /api/training/text/14
+2025-11-23T05:00:02.910Z - GET /favicon.ico
+2025-11-23T05:13:29.101Z - GET /api/training/available
+2025-11-23T05:13:29.114Z - GET /favicon.ico
+2025-11-23T05:13:30.160Z - GET /api/training/text/14
+2025-11-23T05:13:30.169Z - GET /favicon.ico
+2025-11-23T05:16:58.331Z - POST /api/training/session
+2025-11-23T05:29:10.824Z - GET /wizard.html?textId=14
+2025-11-23T05:29:10.877Z - GET /css/style.css
+2025-11-23T05:29:10.884Z - GET /js/app.js
+2025-11-23T05:29:10.890Z - GET /js/auth.js
+2025-11-23T05:29:10.894Z - GET /js/rangy-utils.js
+2025-11-23T05:29:10.895Z - GET /js/Fragment.js?v=1
+2025-11-23T05:29:10.896Z - GET /js/ErrorHandler.js?v=1
+2025-11-23T05:29:10.897Z - GET /js/fragmentUtils.js?v=1
+2025-11-23T05:29:10.901Z - GET /css/wizard.css
+2025-11-23T05:29:10.902Z - GET /js/FragmentCache.js?v=1
+2025-11-23T05:29:10.919Z - GET /js/fragmentAPI.js?v=1
+2025-11-23T05:29:10.924Z - GET /js/FragmentManager.js?v=2
+2025-11-23T05:29:10.926Z - GET /js/wizard.js?v=16
+2025-11-23T05:29:10.962Z - GET /api/wizard/text/14
+2025-11-23T05:29:10.979Z - GET /favicon.ico
+2025-11-23T05:29:10.987Z - GET /api/wizard/text/14
+2025-11-23T05:29:10.999Z - GET /api/wizard/text/14?t=1763875750997
+2025-11-23T05:29:11.009Z - GET /api/wizard/text/14?t=1763875750997
+2025-11-23T05:29:11.025Z - GET /api/wizard/all-emojis?language=de
+2025-11-23T05:29:11.032Z - GET /api/wizard/all-emojis?language=de
+2025-11-23T05:29:11.042Z - GET /api/wizard/emojis/translate?text=Guten%20Tag.%20Mein%20Thema%20hei%C3%9Ft%20%E2%80%9CJung%20heiraten%E2%80%9D.%20In%20meiner%20Pr%C3%A4sentation%20spreche%20ich%20zuerst%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen%2C%20dann%20%C3%BCber%20die%20Situation%20in%20meinem%20Heimatland.%20Danach%20wiege%20ich%20Vor-%20und%20Nachteile%20ab%20und%20%C3%A4u%C3%9Fere%20meine%20Meinung.%20Am%20Ende%20k%C3%B6nnen%20Sie%20mir%20nat%C3%BCrlich%20noch%20Fragen%20stellen.%0A%0AZuerst%20spreche%20ich%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen.&maxEmojis=10
+Searching emojis for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Detected language: de
+Finding emojis with iterative ontology for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Processing all 30 words: [
+  'guten',     'tag',          'thema',
+  'heißt',     'jung',         'heiraten',
+  'meiner',    'präsentation', 'spreche',
+  'zuerst',    'persönlichen', 'erfahrungen',
+  'situation', 'meinem',       'heimatland',
+  'danach',    'wiege',        'vor',
+  'nachteile', 'äußere',       'meinung',
+  'ende',      'sie',          'natürlich',
+  'fragen',    'stellen',      'zuerst',
+  'spreche',   'persönlichen', 'erfahrungen'
+]
+Processing word: "guten"
+Multiple translations for "guten": [good]
+Direct emojis for "good": 3
+Searching ontology graph for "good"
+Found ontology words: []
+Processing word: "tag"
+Multiple translations for "tag": [day, dai, date, time, period, daytime]
+Direct emojis for "day": 3
+Searching ontology graph for "day"
+Found ontology words: [
+  'time',      'morning',
+  'afternoon', 'evening',
+  'night',     'day',
+  'sun',       'weather'
+]
+Emojis for ontology word "time": 2
+Emojis for ontology word "morning": 2
+Found sufficient emojis for word "tag", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-23T05:29:11.076Z - GET /api/wizard/emojis/translate?text=Guten%20Tag.%20Mein%20Thema%20hei%C3%9Ft%20%E2%80%9CJung%20heiraten%E2%80%9D.%20In%20meiner%20Pr%C3%A4sentation%20spreche%20ich%20zuerst%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen%2C%20dann%20%C3%BCber%20die%20Situation%20in%20meinem%20Heimatland.%20Danach%20wiege%20ich%20Vor-%20und%20Nachteile%20ab%20und%20%C3%A4u%C3%9Fere%20meine%20Meinung.%20Am%20Ende%20k%C3%B6nnen%20Sie%20mir%20nat%C3%BCrlich%20noch%20Fragen%20stellen.%0A%0AZuerst%20spreche%20ich%20%C3%BCber%20meine%20pers%C3%B6nlichen%20Erfahrungen.&maxEmojis=10
+Searching emojis for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Detected language: de
+Finding emojis with iterative ontology for text: "Guten Tag. Mein Thema heißt “Jung heiraten”. In meiner Präsentation spreche ich zuerst über meine persönlichen Erfahrungen, dann über die Situation in meinem Heimatland. Danach wiege ich Vor- und Nachteile ab und äußere meine Meinung. Am Ende können Sie mir natürlich noch Fragen stellen.
+
+Zuerst spreche ich über meine persönlichen Erfahrungen."
+Processing all 30 words: [
+  'guten',     'tag',          'thema',
+  'heißt',     'jung',         'heiraten',
+  'meiner',    'präsentation', 'spreche',
+  'zuerst',    'persönlichen', 'erfahrungen',
+  'situation', 'meinem',       'heimatland',
+  'danach',    'wiege',        'vor',
+  'nachteile', 'äußere',       'meinung',
+  'ende',      'sie',          'natürlich',
+  'fragen',    'stellen',      'zuerst',
+  'spreche',   'persönlichen', 'erfahrungen'
+]
+Processing word: "guten"
+Multiple translations for "guten": [good]
+Direct emojis for "good": 3
+Searching ontology graph for "good"
+Found ontology words: []
+Processing word: "tag"
+Multiple translations for "tag": [day, dai, date, time, period, daytime]
+Direct emojis for "day": 3
+Searching ontology graph for "day"
+Found ontology words: [
+  'time',      'morning',
+  'afternoon', 'evening',
+  'night',     'day',
+  'sun',       'weather'
+]
+Emojis for ontology word "time": 2
+Emojis for ontology word "morning": 2
+Found sufficient emojis for word "tag", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-23T05:29:17.874Z - GET /api/wizard/emojis/translate?text=Welche%20meiner%20Interessen%20haben%20mich%20dazu%20gef%C3%BChrt%2C%20ausgerechnet%20diese%20Person%20zu%20treffen%20und%20nicht%20jemand%20anderen%3F&maxEmojis=10
+Searching emojis for text: "Welche meiner Interessen haben mich dazu geführt, ausgerechnet diese Person zu treffen und nicht jemand anderen?"
+Detected language: de
+Finding emojis with iterative ontology for text: "Welche meiner Interessen haben mich dazu geführt, ausgerechnet diese Person zu treffen und nicht jemand anderen?"
+Processing all 8 words: [
+  'meiner',
+  'interessen',
+  'dazu',
+  'geführt',
+  'ausgerechnet',
+  'person',
+  'treffen',
+  'anderen'
+]
+Processing word: "meiner"
+No translation found for "meiner", skipping word
+Processing word: "interessen"
+No translation found for "interessen", skipping word
+Processing word: "dazu"
+No translation found for "dazu", skipping word
+Processing word: "geführt"
+No translation found for "geführt", skipping word
+Processing word: "ausgerechnet"
+No translation found for "ausgerechnet", skipping word
+Processing word: "person"
+No translation found for "person", skipping word
+Processing word: "treffen"
+No translation found for "treffen", skipping word
+Processing word: "anderen"
+No translation found for "anderen", skipping word
+Found 0 unique emojis with iterative ontology
+2025-11-23T05:29:19.785Z - GET /api/wizard/emojis/translate?text=Nur%20indem%20man%20etwas%20Zeit%20mit%20der%20Partner%20verbringt%2C%20kann%20man%20verstehen%2C%20wer%20man%20wirklich%20braucht.&maxEmojis=10
+Searching emojis for text: "Nur indem man etwas Zeit mit der Partner verbringt, kann man verstehen, wer man wirklich braucht."
+Detected language: de
+Finding emojis with iterative ontology for text: "Nur indem man etwas Zeit mit der Partner verbringt, kann man verstehen, wer man wirklich braucht."
+Processing all 10 words: [
+  'indem',     'man',
+  'zeit',      'partner',
+  'verbringt', 'man',
+  'verstehen', 'man',
+  'wirklich',  'braucht'
+]
+Processing word: "indem"
+No translation found for "indem", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "zeit"
+Multiple translations for "zeit": [time, moment, period, duration, hour]
+Direct emojis for "time": 3
+Searching ontology graph for "time"
+Found ontology words: [
+  'morning', 'afternoon',
+  'evening', 'night',
+  'day',     'time',
+  'sunrise', 'breakfast'
+]
+Emojis for ontology word "morning": 2
+Emojis for ontology word "afternoon": 1
+Emojis for ontology word "evening": 2
+Emojis for ontology word "night": 2
+Emojis for ontology word "day": 2
+Found sufficient emojis for word "zeit", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-23T05:29:40.603Z - POST /api/wizard/fragment/update
+2025-11-23T05:29:40.630Z - GET /api/wizard/text/14
+2025-11-23T05:29:40.640Z - GET /api/wizard/emojis/translate?text=Nur%20indem%20man%20Zeit%20mit%20seinem%20Partner%20verbringt%2C%20kann%20man%20verstehen%2C%20wer%20wirklich%20als%20Lebenspartner%20passt.&maxEmojis=10
+Searching emojis for text: "Nur indem man Zeit mit seinem Partner verbringt, kann man verstehen, wer wirklich als Lebenspartner passt."
+Detected language: de
+Finding emojis with iterative ontology for text: "Nur indem man Zeit mit seinem Partner verbringt, kann man verstehen, wer wirklich als Lebenspartner passt."
+Processing all 11 words: [
+  'indem',    'man',
+  'zeit',     'seinem',
+  'partner',  'verbringt',
+  'man',      'verstehen',
+  'wirklich', 'lebenspartner',
+  'passt'
+]
+Processing word: "indem"
+No translation found for "indem", skipping word
+Processing word: "man"
+Multiple translations for "man": [one, on]
+Skipping abstract translated word: "one"
+Skipping abstract translated word: "on"
+Processing word: "zeit"
+Multiple translations for "zeit": [time, moment, period, duration, hour]
+Direct emojis for "time": 3
+Searching ontology graph for "time"
+Found ontology words: [
+  'morning', 'afternoon',
+  'evening', 'night',
+  'day',     'time',
+  'sunrise', 'breakfast'
+]
+Emojis for ontology word "morning": 2
+Emojis for ontology word "afternoon": 1
+Emojis for ontology word "evening": 2
+Emojis for ontology word "night": 2
+Emojis for ontology word "day": 2
+Found sufficient emojis for word "zeit", moving to next word
+Reached max emojis (10), stopping search
+Found 10 unique emojis with iterative ontology
+2025-11-23T05:31:13.544Z - GET /
+2025-11-23T05:31:13.593Z - GET /css/style.css
+2025-11-23T05:31:13.596Z - GET /js/app.js
+2025-11-23T05:31:13.600Z - GET /js/auth.js
+2025-11-23T05:31:13.601Z - GET /js/main.js
+2025-11-23T05:31:13.602Z - GET /css/auth.css
+2025-11-23T05:31:13.661Z - GET /favicon.ico
+2025-11-23T05:31:15.036Z - GET /training
+2025-11-23T05:31:15.080Z - GET /css/style.css
+2025-11-23T05:31:15.082Z - GET /js/app.js
+2025-11-23T05:31:15.088Z - GET /js/auth.js
+2025-11-23T05:31:15.089Z - GET /js/training.js
+2025-11-23T05:31:15.091Z - GET /css/training.css
+2025-11-23T05:31:15.120Z - GET /api/training/available
+2025-11-23T05:31:15.142Z - GET /favicon.ico
+2025-11-23T05:31:16.919Z - GET /api/training/text/14
+2025-11-23T05:31:16.928Z - GET /favicon.ico
+2025-11-23T05:32:46.648Z - GET /api/training/available
+2025-11-23T05:32:46.657Z - GET /favicon.ico
+2025-11-23T05:32:48.018Z - GET /api/training/text/14
+2025-11-23T05:32:48.028Z - GET /favicon.ico
+2025-11-23T05:40:09.106Z - POST /api/training/session
+2025-11-23T06:01:28.227Z - POST /api/training/session
+2025-11-23T06:58:45.488Z - POST /api/training/session
+2025-11-23T07:32:31.235Z - GET /
+2025-11-23T07:32:31.307Z - GET /css/style.css
+2025-11-23T07:32:31.326Z - GET /css/auth.css
+2025-11-23T07:32:31.338Z - GET /js/app.js
+2025-11-23T07:32:31.339Z - GET /js/auth.js
+2025-11-23T07:32:31.350Z - GET /js/main.js
+2025-11-23T07:32:31.427Z - GET /favicon.ico
+2025-11-23T07:32:33.066Z - GET /training
+2025-11-23T07:32:33.126Z - GET /css/style.css
+2025-11-23T07:32:33.150Z - GET /css/training.css
+2025-11-23T07:32:33.157Z - GET /js/app.js
+2025-11-23T07:32:33.160Z - GET /js/auth.js
+2025-11-23T07:32:33.161Z - GET /js/training.js
+2025-11-23T07:32:33.211Z - GET /api/training/available
+2025-11-23T07:32:33.258Z - GET /favicon.ico
+2025-11-23T07:32:35.836Z - GET /api/training/text/14
+2025-11-23T07:32:35.843Z - GET /favicon.ico
+2025-11-23T07:36:41.535Z - POST /api/training/session

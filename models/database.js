@@ -98,7 +98,16 @@ class Database {
             `CREATE INDEX IF NOT EXISTS idx_text_fragments_text_id ON text_fragments(text_id)`,
             `CREATE INDEX IF NOT EXISTS idx_training_sessions_user_id ON training_sessions(user_id)`,
             `CREATE INDEX IF NOT EXISTS idx_training_sessions_text_id ON training_sessions(text_id)`,
-            `CREATE INDEX IF NOT EXISTS idx_training_sessions_created_at ON training_sessions(created_at)`
+            `CREATE INDEX IF NOT EXISTS idx_training_sessions_created_at ON training_sessions(created_at)`,
+            
+            // REF-15: Составной индекс для оптимизации запросов с сортировкой
+            `CREATE INDEX IF NOT EXISTS idx_fragments_text_order ON text_fragments(text_id, fragment_order)`,
+            
+            // REF-16: Индекс для поиска по позициям (дедупликация)
+            `CREATE INDEX IF NOT EXISTS idx_fragments_positions ON text_fragments(text_id, start_position, end_position)`,
+            
+            // Дополнительный индекс для поиска фрагментов с ассоциациями
+            `CREATE INDEX IF NOT EXISTS idx_fragments_associations ON text_fragments(text_id, emoji, custom_word, custom_image)`
         ];
         
         indexQueries.forEach(query => {

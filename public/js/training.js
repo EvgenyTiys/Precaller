@@ -332,12 +332,6 @@ async function loadAvailableTexts() {
             const title = document.createElement('h3');
             title.textContent = text.title;
             
-            const meta = document.createElement('div');
-            meta.className = 'training-text-meta';
-            
-            const langSpan = document.createElement('span');
-            langSpan.textContent = `Язык: ${getLanguageName(text.language)}`;
-            
             const stats = document.createElement('div');
             stats.className = 'training-text-stats';
             
@@ -357,11 +351,8 @@ async function loadAvailableTexts() {
             stats.appendChild(fragmentSpan);
             stats.appendChild(dateSpan);
             
-            meta.appendChild(langSpan);
-            meta.appendChild(stats);
-            
             item.appendChild(title);
-            item.appendChild(meta);
+            item.appendChild(stats);
             
             trainingTexts.appendChild(item);
         });
@@ -562,6 +553,7 @@ function showInputSlide() {
     }
     if (userInputText) {
         userInputText.style.display = 'none';
+        userInputText.style.backgroundColor = ''; // Сбрасываем цвет при скрытии
     }
     
     // Показываем поле ввода
@@ -574,19 +566,25 @@ function showInputSlide() {
             // Делаем поле readonly по умолчанию, чтобы не перехватывало события клавиатуры
             fragmentInput.readOnly = true;
             // Активируем поле при клике
-            const activateInput = function() {
-                fragmentInput.readOnly = false;
-                fragmentInput.focus();
-                // При потере фокуса снова делаем readonly
-                const deactivateInput = function() {
-                    if (fragmentInput.value.trim() === '') {
-                        fragmentInput.readOnly = true;
-                    }
-                    fragmentInput.removeEventListener('blur', deactivateInput);
-                };
-                fragmentInput.addEventListener('blur', deactivateInput, { once: true });
+            const activateInput = function(event) {
+                if (fragmentInput.readOnly) {
+                    event.preventDefault();
+                    fragmentInput.readOnly = false;
+                    // Используем setTimeout для гарантированной установки focus
+                    setTimeout(() => {
+                        fragmentInput.focus();
+                    }, 0);
+                    // При потере фокуса снова делаем readonly
+                    const deactivateInput = function() {
+                        if (fragmentInput.value.trim() === '') {
+                            fragmentInput.readOnly = true;
+                        }
+                        fragmentInput.removeEventListener('blur', deactivateInput);
+                    };
+                    fragmentInput.addEventListener('blur', deactivateInput, { once: true });
+                }
             };
-            fragmentInput.addEventListener('click', activateInput, { once: true });
+            fragmentInput.addEventListener('mousedown', activateInput);
         }
     }
     
@@ -675,6 +673,12 @@ function continueFromInput() {
 function startTraining() {
     // Запускаем секундомер
     startTimer();
+    
+    // Показываем кнопку "Остановить"
+    const stopTimerBtn = document.getElementById('stopTimerBtn');
+    if (stopTimerBtn) {
+        stopTimerBtn.style.display = '';
+    }
     
     // Показываем режим тренировки
     showTrainingMode();
@@ -786,8 +790,21 @@ function displayCurrentFragment() {
         if (userInput) {
             userInputText.textContent = userInput;
             userInputText.style.display = 'block';
+            
+            // Сравниваем тексты и устанавливаем цвет фона
+            const fragmentContent = fragment.content.trim();
+            const userInputTrimmed = userInput.trim();
+            
+            if (fragmentContent === userInputTrimmed) {
+                // Тексты совпадают - светло-зелёный фон
+                userInputText.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+            } else {
+                // Тексты не совпадают - светло-розовый фон
+                userInputText.style.backgroundColor = 'rgba(255, 192, 203, 0.3)';
+            }
         } else {
             userInputText.style.display = 'none';
+            userInputText.style.backgroundColor = ''; // Сбрасываем цвет, если нет введённого текста
         }
     }
     
@@ -805,22 +822,28 @@ function displayCurrentFragment() {
                 // Удаляем старые обработчики и добавляем новый для активации при клике
                 const oldHandler = fragmentInput._activateHandler;
                 if (oldHandler) {
-                    fragmentInput.removeEventListener('click', oldHandler);
+                    fragmentInput.removeEventListener('mousedown', oldHandler);
                 }
-                const activateHandler = function() {
-                    fragmentInput.readOnly = false;
-                    fragmentInput.focus();
-                    // При потере фокуса снова делаем readonly (если поле пустое)
-                    const deactivateHandler = function() {
-                        if (fragmentInput.value.trim() === '') {
-                            fragmentInput.readOnly = true;
-                        }
-                        fragmentInput.removeEventListener('blur', deactivateHandler);
-                    };
-                    fragmentInput.addEventListener('blur', deactivateHandler, { once: true });
+                const activateHandler = function(event) {
+                    if (fragmentInput.readOnly) {
+                        event.preventDefault();
+                        fragmentInput.readOnly = false;
+                        // Используем setTimeout для гарантированной установки focus
+                        setTimeout(() => {
+                            fragmentInput.focus();
+                        }, 0);
+                        // При потере фокуса снова делаем readonly (если поле пустое)
+                        const deactivateHandler = function() {
+                            if (fragmentInput.value.trim() === '') {
+                                fragmentInput.readOnly = true;
+                            }
+                            fragmentInput.removeEventListener('blur', deactivateHandler);
+                        };
+                        fragmentInput.addEventListener('blur', deactivateHandler, { once: true });
+                    }
                 };
                 fragmentInput._activateHandler = activateHandler;
-                fragmentInput.addEventListener('click', activateHandler, { once: true });
+                fragmentInput.addEventListener('mousedown', activateHandler);
             }
         } else {
             fragmentInputContainer.style.display = 'none';
@@ -875,9 +898,9 @@ function displayFragmentAssociation(fragment, fragmentIndex = null) {
     } else if (fragment.emoji) {
         // Безопасное отображение emoji через textContent
         const div = document.createElement('div');
-        div.className = 'association-emoji';
+        div.className = 'association-emoji training-mode-no-link';
         div.textContent = fragment.emoji; // textContent безопасен и поддерживает все emoji
-        div.addEventListener('click', openWizardForFragment);
+        // В режиме тренировок смайлики без гиперссылок
         fragmentAssociation.appendChild(div);
     } else if (fragment.customImage) {
         // Валидация URL изображения
@@ -886,9 +909,9 @@ function displayFragmentAssociation(fragment, fragmentIndex = null) {
             if (['http:', 'https:'].includes(urlObj.protocol)) {
                 const img = document.createElement('img');
                 img.src = fragment.customImage;
-                img.className = 'association-image';
+                img.className = 'association-image training-mode-no-link';
                 img.alt = 'Ассоциация';
-                img.addEventListener('click', openWizardForFragment);
+                // В режиме тренировок изображения без гиперссылок
                 fragmentAssociation.appendChild(img);
             } else {
                 // Недопустимый протокол - показываем номер
@@ -906,9 +929,9 @@ function displayFragmentAssociation(fragment, fragmentIndex = null) {
         }
     } else if (fragment.customWord) {
         const div = document.createElement('div');
-        div.className = 'association-word';
+        div.className = 'association-word training-mode-no-link';
         div.textContent = fragment.customWord; // textContent автоматически экранирует
-        div.addEventListener('click', openWizardForFragment);
+        // В режиме тренировок слова без гиперссылок
         fragmentAssociation.appendChild(div);
     } else {
         const div = document.createElement('div');
@@ -1339,6 +1362,12 @@ function stopTimer() {
     if (timerInterval) {
         clearInterval(timerInterval);
         timerInterval = null;
+    }
+    
+    // Скрываем кнопку "Остановить" после нажатия
+    const stopTimerBtn = document.getElementById('stopTimerBtn');
+    if (stopTimerBtn) {
+        stopTimerBtn.style.display = 'none';
     }
 }
 
