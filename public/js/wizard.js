@@ -856,6 +856,11 @@ async function saveFragments() {
 
 // Инициализация Шага 3
 async function initializeStep3() {
+    // Сброс индекса фрагмента при входе на шаг 3
+    // Это гарантирует, что при переходе на новый текст мы начнём с первого фрагмента
+    currentFragmentIndex = 0;
+    activeEmojiPosition = -1;
+    
     // Показываем цепочку рассказа
     const storyChain = document.getElementById('storyChain');
     if (storyChain) {
