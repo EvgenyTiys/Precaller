@@ -20,6 +20,7 @@ let timerInterval = null;
 let startTime = null;
 let elapsedSeconds = 0;
 let isTimerRunning = false;
+let trainingStartTime = null; // Время начала тренировки для сохранения
 
 // Введённые пользователем фразы
 let userInputs = [];
@@ -42,6 +43,9 @@ function initializeTraining() {
     
     // Проверяем аутентификацию
     checkAuthentication();
+    
+    // Восстанавливаем состояние тренировки из localStorage
+    restoreTrainingState();
     
     // Инициализируем обработчики
     initializeTrainingHandlers();
@@ -1342,11 +1346,53 @@ function toggleTimerVisibility() {
     }
 }
 
+// Восстановление состояния тренировки из localStorage
+function restoreTrainingState() {
+    const savedTrainingStart = localStorage.getItem('trainingStartTime');
+    const savedTextId = localStorage.getItem('activeTrainingTextId');
+    
+    if (savedTrainingStart && savedTextId) {
+        trainingStartTime = parseInt(savedTrainingStart, 10);
+        
+        // Вычисляем прошедшее время
+        elapsedSeconds = Math.floor((Date.now() - trainingStartTime) / 1000);
+        
+        // Если прошло разумное время (не больше 7 дней), восстанавливаем таймер
+        const MAX_RESTORE_TIME = 7 * 24 * 3600; // 7 дней
+        if (elapsedSeconds > 0 && elapsedSeconds < MAX_RESTORE_TIME) {
+            // Не запускаем таймер автоматически, но сохраняем состояние
+            updateTimerDisplay();
+            console.log('Восстановлено состояние тренировки:', {
+                textId: savedTextId,
+                elapsedSeconds: elapsedSeconds
+            });
+        } else {
+            // Слишком много времени прошло, очищаем
+            clearTrainingState();
+        }
+    }
+}
+
+// Очистка состояния тренировки
+function clearTrainingState() {
+    localStorage.removeItem('trainingStartTime');
+    localStorage.removeItem('activeTrainingTextId');
+    trainingStartTime = null;
+}
+
 // Функции секундомера
 function startTimer() {
     if (isTimerRunning) return;
     
     isTimerRunning = true;
+    
+    // Если это новая тренировка (нет trainingStartTime), сохраняем время начала
+    if (!trainingStartTime) {
+        trainingStartTime = Date.now();
+        localStorage.setItem('trainingStartTime', trainingStartTime.toString());
+        localStorage.setItem('activeTrainingTextId', currentTextId);
+    }
+    
     startTime = Date.now() - (elapsedSeconds * 1000);
     
     timerInterval = setInterval(() => {
@@ -1375,6 +1421,8 @@ function resetTimer() {
     stopTimer();
     elapsedSeconds = 0;
     startTime = null;
+    trainingStartTime = null;
+    clearTrainingState();
     updateTimerDisplay();
 }
 
@@ -1448,6 +1496,7 @@ async function finishTraining() {
         
         // Удаляем из localStorage только после успеха
         localStorage.removeItem('pendingTrainingSession');
+        clearTrainingState();
         
         window.app.showNotification('Тренировка завершена! Время сохранено.', 'success');
         

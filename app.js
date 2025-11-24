@@ -65,6 +65,11 @@ app.get('/training', (req, res) => {
     res.render('training', { title: 'Тренировка' });
 });
 
+// Страница статистики
+app.get('/statistics', (req, res) => {
+    res.render('statistics', { title: 'Статистика' });
+});
+
 // Тестовая страница для эмодзи
 app.get('/test-emoji.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'test-emoji.html'));

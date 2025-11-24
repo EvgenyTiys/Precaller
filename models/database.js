@@ -269,6 +269,34 @@ class Database {
         this.db.all(query, [textId], callback);
     }
 
+    getTrainingSessionById(sessionId, callback) {
+        const query = `SELECT * FROM training_sessions WHERE id = ?`;
+        this.db.get(query, [sessionId], callback);
+    }
+
+    getTrainingSessionsWithTextInfo(userId, callback) {
+        const query = `
+            SELECT 
+                ts.id,
+                ts.text_id,
+                ts.duration_seconds,
+                ts.created_at,
+                t.title as text_title
+            FROM training_sessions ts
+            JOIN texts t ON ts.text_id = t.id
+            WHERE ts.user_id = ?
+            ORDER BY ts.created_at DESC
+        `;
+        this.db.all(query, [userId], callback);
+    }
+
+    deleteTrainingSession(sessionId, callback) {
+        const query = `DELETE FROM training_sessions WHERE id = ?`;
+        this.db.run(query, [sessionId], function(err) {
+            callback(err, this.changes);
+        });
+    }
+
     close() {
         this.db.close((err) => {
             if (err) {

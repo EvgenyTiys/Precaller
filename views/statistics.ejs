@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - <%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .statistics-container {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+            min-height: 600px;
+        }
+
+        .statistics-table-container {
+            flex: 0 0 45%;
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .statistics-chart-container {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .statistics-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .statistics-table th,
+        .statistics-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .statistics-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .statistics-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .delete-session-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .delete-session-btn:hover {
+            color: #c82333;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chart-controls label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .threshold-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .threshold-input {
+            width: 100px;
+            padding: 0.375rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .threshold-btn {
+            padding: 0.375rem 0.75rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .threshold-btn:hover {
+            background: #218838;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .statistics-container {
+                flex-direction: column;
+            }
+
+            .statistics-table-container {
+                flex: 1;
+                max-height: 400px;
+            }
+
+            .statistics-chart-container {
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">Статистика тренировок</a>
+            </h1>
+            <nav class="nav">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/training" class="nav-link">Тренировка</a>
+                <div class="user-menu" id="userMenu">
+                    <span class="username" id="username"></span>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <h2>Статистика ваших тренировок</h2>
+            
+            <div class="statistics-container">
+                <!-- Таблица со статистикой -->
+                <div class="statistics-table-container">
+                    <h3>История тренировок</h3>
+                    <table class="statistics-table" id="statisticsTable">
+                        <thead>
+                            <tr>
+                                <th>Дата и время</th>
+                                <th>Текст</th>
+                                <th>Время</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="statisticsTableBody">
+                            <!-- Строки будут добавлены динамически -->
+                        </tbody>
+                    </table>
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Нет данных</h3>
+                        <p>Завершите хотя бы одну тренировку, чтобы увидеть статистику</p>
+                    </div>
+                </div>
+
+                <!-- График -->
+                <div class="statistics-chart-container">
+                    <h3>График прогресса</h3>
+                    <div class="chart-controls">
+                        <label>
+                            <input type="checkbox" id="logScaleCheckbox" checked>
+                            <span>Логарифмическая шкала Y</span>
+                        </label>
+                        <div class="threshold-input-group">
+                            <label for="thresholdInput">Порог:</label>
+                            <input type="text" id="thresholdInput" class="threshold-input" placeholder="чч:мм:сс" value="">
+                            <button id="setThresholdBtn" class="threshold-btn">Установить</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        let chartInstance = null;
+        let sessionsData = [];
+        let thresholdSeconds = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            loadStatistics();
+
+            // Обработчики
+            document.getElementById('logScaleCheckbox').addEventListener('change', updateChart);
+            document.getElementById('setThresholdBtn').addEventListener('click', setThreshold);
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('currentUser');
+                window.location.href = '/';
+            });
+
+            // Загружаем сохраненный порог из localStorage
+            const savedThreshold = localStorage.getItem('trainingThreshold');
+            if (savedThreshold) {
+                document.getElementById('thresholdInput').value = savedThreshold;
+                thresholdSeconds = parseTimeToSeconds(savedThreshold);
+            }
+        });
+
+        function checkAuthentication() {
+            const savedToken = localStorage.getItem('authToken');
+            const savedUser = localStorage.getItem('currentUser');
+            
+            if (!savedToken || !savedUser) {
+                window.location.href = '/';
+                return;
+            }
+            
+            const currentUser = JSON.parse(savedUser);
+            const username = document.getElementById('username');
+            if (username) {
+                username.textContent = currentUser.username;
+            }
+        }
+
+        async function loadStatistics() {
+            try {
+                window.app.showLoader();
+                
+                const response = await window.app.apiRequest('/api/training/statistics');
+                sessionsData = response.sessions;
+
+                if (sessionsData.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('statisticsTable').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('statisticsTable').style.display = 'table';
+
+                renderTable();
+                updateChart();
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                window.app.showNotification(error.message || 'Ошибка загрузки статистики', 'error');
+            } finally {
+                window.app.hideLoader();
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('statisticsTableBody');
+            tbody.innerHTML = '';
+
+            sessionsData.forEach(session => {
+                const row = document.createElement('tr');
+                
+                const dateCell = document.createElement('td');
+                dateCell.textContent = formatDateTime(session.created_at);
+                
+                const textCell = document.createElement('td');
+                textCell.textContent = session.text_title;
+                
+                const durationCell = document.createElement('td');
+                durationCell.textContent = formatDuration(session.duration_seconds);
+                
+                const deleteCell = document.createElement('td');
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-session-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.title = 'Удалить';
+                deleteBtn.addEventListener('click', () => deleteSession(session.id));
+                deleteCell.appendChild(deleteBtn);
+                
+                row.appendChild(dateCell);
+                row.appendChild(textCell);
+                row.appendChild(durationCell);
+                row.appendChild(deleteCell);
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateChart() {
+            if (sessionsData.length === 0) return;
+
+            const isLogScale = document.getElementById('logScaleCheckbox').checked;
+            
+            // Сортируем по дате (старые первыми для графика)
+            const sortedSessions = [...sessionsData].reverse();
+            
+            const labels = sortedSessions.map(s => formatDateTime(s.created_at));
+            const data = sortedSessions.map(s => s.duration_seconds);
+
+            const ctx = document.getElementById('progressChart');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const datasets = [{
+                label: 'Время тренировки (сек)',
+                data: data,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }];
+
+            // Добавляем линию порога, если задан
+            if (thresholdSeconds !== null) {
+                datasets.push({
+                    label: 'Порог',
+                    data: new Array(data.length).fill(thresholdSeconds),
+                    borderColor: 'rgb(40, 167, 69)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: isLogScale ? 'logarithmic' : 'linear',
+                            beginAtZero: !isLogScale,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatDuration(value);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Время'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Дата и время'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatDuration(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function deleteSession(sessionId) {
+            if (!confirm('Вы уверены, что хотите удалить эту тренировку?')) {
+                return;
+            }
+
+            try {
+                window.app.showLoader();
+                
+                await window.app.apiRequest(`/api/training/session/${sessionId}`, {
+                    method: 'DELETE'
+                });
+
+                // Удаляем из локального массива
+                sessionsData = sessionsData.filter(s => s.id !== sessionId);
+
+                // Обновляем таблицу и график
+                if (sessionsData.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('statisticsTable').style.display = 'none';
+                    if (chartInstance) {
+                        chartInstance.destroy();
+                        chartInstance = null;
+                    }
+                } else {
+                    renderTable();
+                    updateChart();
+                }
+
+                window.app.showNotification('Тренировка удалена', 'success');
+            } catch (error) {
+                console.error('Error deleting session:', error);
+                window.app.showNotification(error.message || 'Ошибка удаления тренировки', 'error');
+            } finally {
+                window.app.hideLoader();
+            }
+        }
+
+        function setThreshold() {
+            const input = document.getElementById('thresholdInput').value.trim();
+            
+            if (!input) {
+                thresholdSeconds = null;
+                localStorage.removeItem('trainingThreshold');
+                updateChart();
+                return;
+            }
+
+            const seconds = parseTimeToSeconds(input);
+            
+            if (seconds === null) {
+                window.app.showNotification('Неверный формат времени. Используйте чч:мм:сс', 'error');
+                return;
+            }
+
+            thresholdSeconds = seconds;
+            localStorage.setItem('trainingThreshold', input);
+            updateChart();
+            window.app.showNotification('Порог установлен', 'success');
+        }
+
+        function parseTimeToSeconds(timeString) {
+            const parts = timeString.split(':');
+            
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
+            const seconds = parseInt(parts[2], 10);
+
+            if (isNaN(hours) || isNaN(minutes) || isNaN(seconds)) {
+                return null;
+            }
+
+            if (hours < 0 || minutes < 0 || minutes >= 60 || seconds < 0 || seconds >= 60) {
+                return null;
+            }
+
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        function formatDuration(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}.${month}.${year} ${hours}:${minutes}`;
+        }
+    </script>
+</body>
+</html>
+

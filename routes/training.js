@@ -129,4 +129,59 @@ router.post('/session', authenticateToken, (req, res) => {
     }
 });
 
+// Получение статистики пользователя
+router.get('/statistics', authenticateToken, (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        req.db.getTrainingSessionsWithTextInfo(userId, (err, sessions) => {
+            if (err) {
+                console.error('Ошибка получения статистики:', err);
+                return res.status(500).json({ error: 'Ошибка получения статистики' });
+            }
+
+            res.json({ sessions });
+        });
+    } catch (error) {
+        console.error('Ошибка получения статистики:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Удаление сессии тренировки
+router.delete('/session/:sessionId', authenticateToken, (req, res) => {
+    try {
+        const sessionId = req.params.sessionId;
+        const userId = req.user.id;
+
+        // Проверяем, что сессия принадлежит пользователю
+        req.db.getTrainingSessionById(sessionId, (err, session) => {
+            if (err) {
+                console.error('Ошибка получения сессии:', err);
+                return res.status(500).json({ error: 'Ошибка получения сессии' });
+            }
+
+            if (!session || session.user_id !== userId) {
+                return res.status(403).json({ error: 'Нет доступа к этой сессии' });
+            }
+
+            // Удаляем сессию
+            req.db.deleteTrainingSession(sessionId, (err) => {
+                if (err) {
+                    console.error('Ошибка удаления сессии:', err);
+                    return res.status(500).json({ error: 'Ошибка удаления сессии' });
+                }
+
+                res.json({ 
+                    success: true, 
+                    message: 'Сессия удалена'
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка удаления сессии:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
 module.exports = router;

@@ -43,6 +43,7 @@ function initializeMenuHandlers() {
     const uploadTextOption = document.getElementById('uploadTextOption');
     const selectTextOption = document.getElementById('selectTextOption');
     const trainingOption = document.getElementById('trainingOption');
+    const statisticsOption = document.getElementById('statisticsOption');
     const textsLink = document.getElementById('textsLink');
     const trainingLink = document.getElementById('trainingLink');
     
@@ -57,6 +58,12 @@ function initializeMenuHandlers() {
     if (trainingOption) {
         trainingOption.addEventListener('click', function() {
             window.location.href = '/training';
+        });
+    }
+    
+    if (statisticsOption) {
+        statisticsOption.addEventListener('click', function() {
+            window.location.href = '/statistics';
         });
     }
     
