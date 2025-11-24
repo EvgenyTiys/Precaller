@@ -417,4 +417,68 @@ router.get('/emojis/translate', async (req, res) => {
     }
 });
 
+// Новый endpoint для автоподбора эмодзи с использованием языка из БД
+router.post('/emojis/auto-suggest', authenticateToken, async (req, res) => {
+    try {
+        const { fragmentText, textId } = req.body;
+        const userId = req.user.id;
+        
+        if (!fragmentText || !textId) {
+            return res.status(400).json({ 
+                error: 'Текст фрагмента и ID текста обязательны' 
+            });
+        }
+        
+        // Получаем язык текста из БД
+        req.db.getTextById(textId, async (err, text) => {
+            if (err) {
+                console.error('Ошибка получения текста:', err);
+                return res.status(500).json({ error: 'Ошибка получения текста' });
+            }
+            
+            if (!text) {
+                return res.status(404).json({ error: 'Текст не найден' });
+            }
+            
+            // Проверяем права доступа
+            if (text.user_id !== userId) {
+                return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+            }
+            
+            const language = text.language || 'de';
+            console.log(`[AUTO-SUGGEST] Text ID: ${textId}, Language: ${language}`);
+            console.log(`[AUTO-SUGGEST] Fragment: "${fragmentText}"`);
+            
+            try {
+                // Используем новый улучшенный сервис
+                const { findEmojisForFragment } = require('../models/enhancedTranslationService');
+                const emojis = await findEmojisForFragment(fragmentText, language, 10);
+                
+                console.log(`[AUTO-SUGGEST] Found ${emojis.length} emojis`);
+                
+                res.json({
+                    success: true,
+                    emojis: emojis,
+                    language: language,
+                    fragmentText: fragmentText,
+                    count: emojis.length
+                });
+            } catch (serviceError) {
+                console.error('Ошибка в enhancedTranslationService:', serviceError);
+                res.status(500).json({ 
+                    error: 'Ошибка автоподбора эмодзи', 
+                    details: serviceError.message 
+                });
+            }
+        });
+        
+    } catch (error) {
+        console.error('Ошибка автоподбора эмодзи:', error);
+        res.status(500).json({ 
+            error: 'Ошибка автоподбора эмодзи', 
+            details: error.message 
+        });
+    }
+});
+
 module.exports = router;

@@ -30,10 +30,13 @@
     "express": "^5.1.0",
     "google-translate-api-x": "^10.7.2",
     "jsonwebtoken": "^9.0.2",
+    "lemmatizer": "^0.0.1",
     "multer": "^2.0.2",
     "natural": "^8.1.0",
     "node-wordnet": "^0.1.12",
     "sqlite3": "^5.1.7",
+    "stopwords": "^0.0.9",
+    "wink-lemmatizer": "^3.0.4",
     "wordnet-db": "^3.1.14",
     "wordpos": "^2.1.0"
   },

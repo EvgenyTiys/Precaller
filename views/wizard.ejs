@@ -115,6 +115,9 @@
                     <div class="step-buttons">
                         <button class="btn btn-secondary" id="backToStep1">Назад</button>
                         <button class="btn btn-secondary" id="undoLastFragment" disabled>Отменить последний фрагмент</button>
+                        <button class="btn btn-secondary" id="autoSuggestEmojis" disabled title="Автоматический подбор эмодзи для всех фрагментов">
+                            <i class="fas fa-magic"></i> Автоподбор эмодзи
+                        </button>
                         <button class="btn btn-primary" id="proceedToStep3" disabled>Перейти к ассоциациям</button>
                     </div>
                 </div>
@@ -226,6 +229,21 @@
         <div class="tooltip-content" id="tooltipContent"></div>
     </div>
 
+    <!-- Модальное окно прогресса автоподбора -->
+    <div class="modal" id="autoSuggestModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Автоподбор эмодзи</h3>
+            <div class="progress-info">
+                <p id="progressText">Обработка фрагментов...</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                </div>
+                <p id="progressStats">0 / 0</p>
+            </div>
+            <button class="btn btn-secondary" id="cancelAutoSuggest">Отмена</button>
+        </div>
+    </div>
+
     <script src="/js/app.js"></script>
     <script src="/js/auth.js"></script>
     <!-- Модули Фазы 1 -->
@@ -236,6 +254,7 @@
     <script src="/js/FragmentCache.js?v=1"></script>
     <script src="/js/fragmentAPI.js?v=1"></script>
     <script src="/js/FragmentManager.js?v=2"></script>
-    <script src="/js/wizard.js?v=16"></script>
+    <script src="/js/EmojiSuggestionCache.js?v=1"></script>
+    <script src="/js/wizard.js?v=17"></script>
 </body>
 </html>

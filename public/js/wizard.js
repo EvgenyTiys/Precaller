@@ -76,9 +76,14 @@ function initializeWizardHandlers() {
     const backToStep1 = document.getElementById('backToStep1');
     const proceedToStep3 = document.getElementById('proceedToStep3');
     const undoLastFragmentBtn = document.getElementById('undoLastFragment');
+    const autoSuggestEmojisBtn = document.getElementById('autoSuggestEmojis');
     
     if (backToStep1) {
         backToStep1.addEventListener('click', () => showStep(1));
+    }
+    
+    if (autoSuggestEmojisBtn) {
+        autoSuggestEmojisBtn.addEventListener('click', handleAutoSuggestEmojis);
     }
     
     if (proceedToStep3) {
@@ -733,6 +738,12 @@ function displayExistingFragments() {
     const proceedBtn = document.getElementById('proceedToStep3');
     if (proceedBtn) {
         proceedBtn.disabled = false;
+    }
+    
+    // Включаем кнопку автоподбора если есть фрагменты
+    const autoSuggestBtn = document.getElementById('autoSuggestEmojis');
+    if (autoSuggestBtn && fragmentManager && fragmentManager.count() > 0) {
+        autoSuggestBtn.disabled = false;
     }
 }
 
@@ -1913,128 +1924,237 @@ async function findEmojisByTranslation(text, maxEmojis = 10) {
     }
 }
 
-// Функция для автоматического поиска эмодзи по фрагментам текста (новый итеративный алгоритм)
-async function autoFindEmojisForFragments() {
-    const fragments = document.querySelectorAll('.text-fragment');
-    if (fragments.length === 0) {
-        console.log('No fragments found for auto emoji search');
+// ========== НОВАЯ СИСТЕМА АВТОПОДБОРА ЭМОДЗИ ==========
+
+// Переменная для отмены автоподбора
+let autoSuggestCancelled = false;
+
+/**
+ * Обработчик кнопки автоподбора эмодзи
+ */
+async function handleAutoSuggestEmojis() {
+    console.log('[AUTO-SUGGEST] Starting auto-suggest process');
+    
+    if (!fragmentManager) {
+        window.app.showNotification('FragmentManager не инициализирован', 'error');
         return;
     }
     
-    console.log(`Auto-searching emojis for ${fragments.length} fragments using iterative algorithm`);
+    const fragments = fragmentManager.getAll();
     
-    for (const fragment of fragments) {
-        const text = fragment.textContent.trim();
-        if (!text) continue;
+    if (fragments.length === 0) {
+        window.app.showNotification('Нет фрагментов для обработки', 'warning');
+        return;
+    }
+    
+    // Показываем модальное окно прогресса
+    showProgressModal(fragments.length);
+    autoSuggestCancelled = false;
+    
+    let processed = 0;
+    let succeeded = 0;
+    
+    for (let i = 0; i < fragments.length; i++) {
+        if (autoSuggestCancelled) {
+            console.log('[AUTO-SUGGEST] Cancelled by user');
+            break;
+        }
         
-        console.log(`Processing fragment: "${text}"`);
+        const fragment = fragments[i];
+        const fragmentText = fragment.content;
         
-        // Используем новый итеративный алгоритм для всего текста фрагмента
-        const emojis = await findEmojisByTranslation(text, 10);
+        console.log(`[AUTO-SUGGEST] Processing ${i + 1}/${fragments.length}: "${fragmentText}"`);
+        updateProgressModal(i + 1, fragments.length, fragmentText);
         
-        console.log(`Found ${emojis.length} emojis for fragment:`, emojis);
-        
-        if (emojis.length > 0) {
-            // Создаем контейнер для предложенных эмодзи
-            let suggestedContainer = fragment.querySelector('.suggested-emojis');
-            if (!suggestedContainer) {
-                suggestedContainer = document.createElement('div');
-                suggestedContainer.className = 'suggested-emojis';
-                fragment.appendChild(suggestedContainer);
+        try {
+            // Проверяем кэш
+            const cached = window.emojiSuggestionCache.get(fragmentText, currentText.language);
+            
+            let emojis;
+            if (cached) {
+                console.log(`[AUTO-SUGGEST] Using cached result for "${fragmentText}"`);
+                emojis = cached;
+            } else {
+                // Запрос к серверу
+                const response = await fetch('/api/wizard/emojis/auto-suggest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        fragmentText: fragmentText,
+                        textId: currentTextId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.emojis && data.emojis.length > 0) {
+                    emojis = data.emojis;
+                    // Сохраняем в кэш
+                    window.emojiSuggestionCache.set(fragmentText, currentText.language, emojis);
+                    console.log(`[AUTO-SUGGEST] Found ${emojis.length} emojis for "${fragmentText}"`);
+                } else {
+                    console.log(`[AUTO-SUGGEST] No emojis found for "${fragmentText}"`);
+                    emojis = [];
+                }
             }
             
-            // Создаем подробный tooltip для каждого эмодзи
-            const emojisHtml = emojis.map(emoji => {
-                console.log('Processing emoji:', emoji);
-                console.log('emoji.native:', emoji.native);
-                console.log('emoji.name:', emoji.name);
-                
-                let tooltip = `${emoji.name || 'Unknown'}`;
-                if (emoji.source === 'direct') {
-                    tooltip += ` (прямой: ${emoji.originalWord} -> ${emoji.translation})`;
-                } else if (emoji.source === 'ontology') {
-                    tooltip += ` (онтология: ${emoji.originalWord} -> ${emoji.translation} -> ${emoji.ontologyWord})`;
-                }
-                
-                // Временно используем простые символы для тестирования
-                const emojiNative = emoji.native || '❓';
-                const emojiName = emoji.name || 'Unknown';
-                
-                // Используем только базовые эмодзи для надежности
-                const testEmoji = emojiNative === '🎂' ? '🎂' : 
-                                 emojiNative === '🎈' ? '🎈' : 
-                                 emojiNative === '🎉' ? '🎉' : 
-                                 emojiNative === '⏲️' ? '⏲️' : 
-                                 emojiNative === '⌛' ? '⌛' : 
-                                 emojiNative === '👿' ? '👿' : 
-                                 emojiNative === '☝️' ? '☝️' : 
-                                 emojiNative === '🫵' ? '🫵' : 
-                                 emojiNative === '🇧🇲' ? '🇧🇲' : 
-                                 emojiNative === '👨‍🔧' ? '👨‍🔧' : 
-                                 emojiNative === '⛷️' ? '⛷️' : 
-                                 emojiNative === '🏂' ? '🏂' : 
-                                 emojiNative === '🎿' ? '🎿' : 
-                                 emojiNative === '🇧🇦' ? '🇧🇦' : 
-                                 emojiNative === '🏊‍♂️' ? '🏊‍♂️' : 
-                                 emojiNative === '☄️' ? '☄️' : 
-                                 emojiNative === '🛜' ? '🛜' : 
-                                 emojiNative === '🍥' ? '🍥' : 
-                                 emojiNative === '🌀' ? '🌀' : 
-                                 emojiNative === '😋' ? '😋' : 
-                                 emojiNative === '🏺' ? '🏺' : 
-                                 emojiNative === '🏈' ? '🏈' : 
-                                 emojiNative === '🚑' ? '🚑' : 
-                                 emojiNative === '🌡️' ? '🌡️' : 
-                                 emojiNative === '🤣' ? '🤣' : 
-                                 emojiNative === '🤒' ? '🤒' : 
-                                 emojiNative === '🍧' ? '🍧' : 
-                                 emojiNative === '🈶' ? '🈶' : 
-                                 '❓';
-                
-                console.log('Final emojiNative:', emojiNative);
-                console.log('Final emojiName:', emojiName);
-                
-                return `
-                    <button class="suggested-emoji-btn" 
-                            data-emoji="${emojiNative}" 
-                            data-name="${emojiName}"
-                            title="${tooltip}">
-                        ${emojiNative}
-                    </button>
-                `;
-            }).join('');
+            if (emojis.length > 0) {
+                // Отображаем предложения в UI
+                displaySuggestedEmojisForFragment(fragment, emojis);
+                succeeded++;
+            }
             
-            suggestedContainer.innerHTML = `
-                <div class="suggested-emojis-title">Предложенные эмодзи (${emojis.length}):</div>
-                <div class="suggested-emojis-list">${emojisHtml}</div>
-            `;
+            processed++;
             
-            console.log('Generated HTML:', suggestedContainer.innerHTML);
-            
-            // Добавляем обработчики клика
-            suggestedContainer.querySelectorAll('.suggested-emoji-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const emoji = this.dataset.emoji;
-                    const name = this.dataset.name;
-                    console.log(`Selected emoji: ${emoji} (${name})`);
-                    
-                    // Добавляем эмодзи к фрагменту
-                    const currentEmojis = fragment.dataset.emojis ? fragment.dataset.emojis.split(',') : [];
-                    if (!currentEmojis.includes(emoji)) {
-                        currentEmojis.push(emoji);
-                        fragment.dataset.emojis = currentEmojis.join(',');
-                        
-                        // Обновляем отображение эмодзи фрагмента
-                        updateFragmentEmojis(fragment);
-                    }
-                    
-                    // Удаляем предложения после выбора
-                    suggestedContainer.remove();
-                });
-            });
+        } catch (error) {
+            console.error(`[AUTO-SUGGEST] Error processing fragment "${fragmentText}":`, error);
+            processed++;
         }
     }
+    
+    hideProgressModal();
+    
+    if (!autoSuggestCancelled) {
+        const message = `Обработано ${processed} фрагментов. Найдены эмодзи для ${succeeded} фрагментов.`;
+        window.app.showNotification(message, 'success');
+    }
 }
+
+/**
+ * Отображает предложенные эмодзи для фрагмента
+ */
+function displaySuggestedEmojisForFragment(fragment, emojis) {
+    // Находим элемент фрагмента в DOM
+    const fragmentElements = document.querySelectorAll('.text-fragment');
+    let fragmentElement = null;
+    
+    for (const el of fragmentElements) {
+        if (el.textContent.trim() === fragment.content) {
+            fragmentElement = el;
+            break;
+        }
+    }
+    
+    if (!fragmentElement) {
+        console.warn('[AUTO-SUGGEST] Fragment element not found in DOM');
+        return;
+    }
+    
+    // Создаем или обновляем контейнер для предложений
+    let suggestedContainer = fragmentElement.querySelector('.suggested-emojis');
+    if (!suggestedContainer) {
+        suggestedContainer = document.createElement('div');
+        suggestedContainer.className = 'suggested-emojis';
+        fragmentElement.appendChild(suggestedContainer);
+    }
+    
+    // Генерируем HTML для эмодзи
+    const emojisHtml = emojis.map(emoji => {
+        const emojiNative = emoji.native || '❓';
+        const emojiName = emoji.name || 'Неизвестно';
+        const searchWord = emoji.searchWord || '';
+        const source = emoji.source || '';
+        
+        let tooltip = emojiName;
+        if (searchWord) {
+            tooltip += ` (найдено по: ${searchWord})`;
+        }
+        if (source) {
+            tooltip += ` [${source}]`;
+        }
+        
+        return `
+            <button class="suggested-emoji-btn" 
+                    data-emoji="${emojiNative}" 
+                    data-name="${emojiName}"
+                    title="${tooltip}">
+                ${emojiNative}
+            </button>
+        `;
+    }).join('');
+    
+    suggestedContainer.innerHTML = `
+        <div class="suggested-emojis-title">Предложенные эмодзи (${emojis.length}):</div>
+        <div class="suggested-emojis-list">${emojisHtml}</div>
+    `;
+    
+    // Добавляем обработчики клика
+    suggestedContainer.querySelectorAll('.suggested-emoji-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const emoji = this.dataset.emoji;
+            console.log(`[AUTO-SUGGEST] User selected emoji: ${emoji}`);
+            
+            // Здесь можно добавить логику сохранения выбранного эмодзи
+            // Например, через fragmentManager.updateAssociation()
+            
+            // Показываем уведомление
+            window.app.showNotification(`Выбран эмодзи: ${emoji}`, 'success');
+            
+            // Удаляем предложения
+            suggestedContainer.remove();
+        });
+    });
+}
+
+/**
+ * Показывает модальное окно прогресса
+ */
+function showProgressModal(total) {
+    const modal = document.getElementById('autoSuggestModal');
+    const progressText = document.getElementById('progressText');
+    const progressStats = document.getElementById('progressStats');
+    const progressBar = document.getElementById('progressBar');
+    const cancelBtn = document.getElementById('cancelAutoSuggest');
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        progressText.textContent = 'Начинаем обработку фрагментов...';
+        progressStats.textContent = `0 / ${total}`;
+        progressBar.style.width = '0%';
+        
+        // Обработчик отмены
+        cancelBtn.onclick = () => {
+            autoSuggestCancelled = true;
+            hideProgressModal();
+            window.app.showNotification('Автоподбор отменён', 'info');
+        };
+    }
+}
+
+/**
+ * Обновляет прогресс в модальном окне
+ */
+function updateProgressModal(current, total, currentText) {
+    const progressText = document.getElementById('progressText');
+    const progressStats = document.getElementById('progressStats');
+    const progressBar = document.getElementById('progressBar');
+    
+    if (progressText && progressStats && progressBar) {
+        const percent = Math.round((current / total) * 100);
+        progressBar.style.width = `${percent}%`;
+        progressStats.textContent = `${current} / ${total}`;
+        
+        const truncatedText = currentText.length > 50 
+            ? currentText.substring(0, 50) + '...' 
+            : currentText;
+        progressText.textContent = `Обработка: "${truncatedText}"`;
+    }
+}
+
+/**
+ * Скрывает модальное окно прогресса
+ */
+function hideProgressModal() {
+    const modal = document.getElementById('autoSuggestModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// ========== КОНЕЦ НОВОЙ СИСТЕМЫ АВТОПОДБОРА ==========
 
 // Функция для обновления отображения эмодзи фрагмента
 function updateFragmentEmojis(fragment) {
