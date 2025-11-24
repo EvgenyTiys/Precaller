@@ -136,6 +136,86 @@
             margin-bottom: 1rem;
         }
 
+        /* Список текстов для выбора */
+        .text-selection {
+            display: none;
+        }
+
+        .statistics-texts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .statistics-text-item {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .statistics-text-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .statistics-text-item h3 {
+            margin: 0 0 1rem 0;
+            color: #333;
+        }
+
+        .statistics-text-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .statistics-text-stats span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .statistics-text-stats i {
+            width: 20px;
+            color: #667eea;
+        }
+
+        /* Режим просмотра статистики */
+        .statistics-view {
+            display: none;
+        }
+
+        .statistics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .back-to-texts-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .back-to-texts-btn:hover {
+            background: #5a6268;
+        }
+
         @media (max-width: 1200px) {
             .statistics-container {
                 flex-direction: column;
@@ -171,48 +251,64 @@
 
     <main class="main">
         <div class="container">
-            <h2>Статистика ваших тренировок</h2>
-            
-            <div class="statistics-container">
-                <!-- Таблица со статистикой -->
-                <div class="statistics-table-container">
-                    <h3>История тренировок</h3>
-                    <table class="statistics-table" id="statisticsTable">
-                        <thead>
-                            <tr>
-                                <th>Дата и время</th>
-                                <th>Текст</th>
-                                <th>Время</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="statisticsTableBody">
-                            <!-- Строки будут добавлены динамически -->
-                        </tbody>
-                    </table>
-                    <div class="empty-state" id="emptyState" style="display: none;">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>Нет данных</h3>
-                        <p>Завершите хотя бы одну тренировку, чтобы увидеть статистику</p>
-                    </div>
+            <!-- Выбор текста -->
+            <div class="text-selection" id="textSelection">
+                <h2>Выберите текст для просмотра статистики</h2>
+                <div class="statistics-texts" id="statisticsTexts">
+                    <!-- Тексты будут загружены динамически -->
                 </div>
+            </div>
 
-                <!-- График -->
-                <div class="statistics-chart-container">
-                    <h3>График прогресса</h3>
-                    <div class="chart-controls">
-                        <label>
-                            <input type="checkbox" id="logScaleCheckbox" checked>
-                            <span>Логарифмическая шкала Y</span>
-                        </label>
-                        <div class="threshold-input-group">
-                            <label for="thresholdInput">Порог:</label>
-                            <input type="text" id="thresholdInput" class="threshold-input" placeholder="чч:мм:сс" value="">
-                            <button id="setThresholdBtn" class="threshold-btn">Установить</button>
+            <!-- Просмотр статистики -->
+            <div class="statistics-view" id="statisticsView">
+                <div class="statistics-header">
+                    <h2 id="statisticsTitle">Статистика тренировок</h2>
+                    <button class="back-to-texts-btn" id="backToTextsBtn">
+                        <i class="fas fa-arrow-left"></i>
+                        Назад к выбору текста
+                    </button>
+                </div>
+                
+                <div class="statistics-container">
+                    <!-- Таблица со статистикой -->
+                    <div class="statistics-table-container">
+                        <h3>История тренировок</h3>
+                        <table class="statistics-table" id="statisticsTable">
+                            <thead>
+                                <tr>
+                                    <th>Дата и время</th>
+                                    <th>Время</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="statisticsTableBody">
+                                <!-- Строки будут добавлены динамически -->
+                            </tbody>
+                        </table>
+                        <div class="empty-state" id="emptyState" style="display: none;">
+                            <i class="fas fa-chart-line"></i>
+                            <h3>Нет данных</h3>
+                            <p>Завершите хотя бы одну тренировку, чтобы увидеть статистику</p>
                         </div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="progressChart"></canvas>
+
+                    <!-- График -->
+                    <div class="statistics-chart-container">
+                        <h3>График прогресса</h3>
+                        <div class="chart-controls">
+                            <label>
+                                <input type="checkbox" id="logScaleCheckbox" checked>
+                                <span>Логарифмическая шкала Y</span>
+                            </label>
+                            <div class="threshold-input-group">
+                                <label for="thresholdInput">Порог:</label>
+                                <input type="text" id="thresholdInput" class="threshold-input" placeholder="чч:мм:сс" value="">
+                                <button id="setThresholdBtn" class="threshold-btn">Установить</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="progressChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,14 +321,16 @@
         let chartInstance = null;
         let sessionsData = [];
         let thresholdSeconds = null;
+        let currentTextId = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             checkAuthentication();
-            loadStatistics();
+            initializeStatistics();
 
             // Обработчики
             document.getElementById('logScaleCheckbox').addEventListener('change', updateChart);
             document.getElementById('setThresholdBtn').addEventListener('click', setThreshold);
+            document.getElementById('backToTextsBtn').addEventListener('click', showTextSelection);
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('currentUser');
@@ -263,16 +361,137 @@
             }
         }
 
-        async function loadStatistics() {
+        function initializeStatistics() {
+            // Получаем ID текста из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentTextId = urlParams.get('textId');
+
+            if (currentTextId) {
+                // Загружаем статистику для конкретного текста
+                loadStatisticsForText(currentTextId);
+            } else {
+                // Показываем список текстов
+                showTextSelection();
+            }
+        }
+
+        async function showTextSelection() {
+            const textSelection = document.getElementById('textSelection');
+            const statisticsView = document.getElementById('statisticsView');
+
+            textSelection.style.display = 'block';
+            statisticsView.style.display = 'none';
+
+            // Очищаем URL
+            window.history.pushState({}, '', window.location.pathname);
+            currentTextId = null;
+
+            await loadAvailableTexts();
+        }
+
+        async function loadAvailableTexts() {
+            const container = document.getElementById('statisticsTexts');
+            if (!container) return;
+
             try {
                 window.app.showLoader();
                 
-                const response = await window.app.apiRequest('/api/training/statistics');
+                const response = await window.app.apiRequest('/api/training/available');
+                const texts = response.texts;
+
+                if (texts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-chart-line"></i>
+                            <h3>Нет текстов для статистики</h3>
+                            <p>Сначала завершите хотя бы одну тренировку</p>
+                            <a href="/training" class="btn btn-primary">Перейти к тренировкам</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+                
+                texts.forEach(text => {
+                    const item = document.createElement('div');
+                    item.className = 'statistics-text-item';
+                    item.addEventListener('click', () => selectTextForStatistics(text.id));
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = text.title;
+                    
+                    const stats = document.createElement('div');
+                    stats.className = 'statistics-text-stats';
+                    
+                    const fragmentSpan = document.createElement('span');
+                    const fragmentIcon = document.createElement('i');
+                    fragmentIcon.className = 'fas fa-puzzle-piece';
+                    fragmentSpan.appendChild(fragmentIcon);
+                    fragmentSpan.appendChild(document.createTextNode(` ${text.fragmentCount} фрагментов`));
+                    
+                    const dateSpan = document.createElement('span');
+                    const dateIcon = document.createElement('i');
+                    dateIcon.className = 'fas fa-calendar';
+                    dateSpan.appendChild(dateIcon);
+                    const dateText = window.app && window.app.formatDate ? window.app.formatDate(text.createdAt) : new Date(text.createdAt).toLocaleDateString('ru-RU');
+                    dateSpan.appendChild(document.createTextNode(` ${dateText}`));
+                    
+                    stats.appendChild(fragmentSpan);
+                    stats.appendChild(dateSpan);
+                    
+                    item.appendChild(title);
+                    item.appendChild(stats);
+                    
+                    container.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error('Error loading texts:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Ошибка загрузки</h3>
+                        <p>${error.message || 'Не удалось загрузить список текстов'}</p>
+                    </div>
+                `;
+            } finally {
+                window.app.hideLoader();
+            }
+        }
+
+        function selectTextForStatistics(textId) {
+            currentTextId = textId;
+            window.history.pushState({}, '', `?textId=${textId}`);
+            loadStatisticsForText(textId);
+        }
+
+        async function loadStatisticsForText(textId) {
+            const textSelection = document.getElementById('textSelection');
+            const statisticsView = document.getElementById('statisticsView');
+
+            textSelection.style.display = 'none';
+            statisticsView.style.display = 'block';
+
+            try {
+                window.app.showLoader();
+                
+                const response = await window.app.apiRequest(`/api/training/statistics?textId=${textId}`);
                 sessionsData = response.sessions;
+
+                // Обновляем заголовок
+                const title = document.getElementById('statisticsTitle');
+                if (title && response.text) {
+                    title.textContent = `Статистика: ${response.text.title}`;
+                }
 
                 if (sessionsData.length === 0) {
                     document.getElementById('emptyState').style.display = 'block';
                     document.getElementById('statisticsTable').style.display = 'none';
+                    if (chartInstance) {
+                        chartInstance.destroy();
+                        chartInstance = null;
+                    }
                     return;
                 }
 
@@ -299,9 +518,6 @@
                 const dateCell = document.createElement('td');
                 dateCell.textContent = formatDateTime(session.created_at);
                 
-                const textCell = document.createElement('td');
-                textCell.textContent = session.text_title;
-                
                 const durationCell = document.createElement('td');
                 durationCell.textContent = formatDuration(session.duration_seconds);
                 
@@ -314,7 +530,6 @@
                 deleteCell.appendChild(deleteBtn);
                 
                 row.appendChild(dateCell);
-                row.appendChild(textCell);
                 row.appendChild(durationCell);
                 row.appendChild(deleteCell);
                 
@@ -508,4 +723,3 @@
     </script>
 </body>
 </html>
-

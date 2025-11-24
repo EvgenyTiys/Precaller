@@ -133,15 +133,41 @@ router.post('/session', authenticateToken, (req, res) => {
 router.get('/statistics', authenticateToken, (req, res) => {
     try {
         const userId = req.user.id;
+        const textId = req.query.textId;
 
-        req.db.getTrainingSessionsWithTextInfo(userId, (err, sessions) => {
-            if (err) {
-                console.error('Ошибка получения статистики:', err);
-                return res.status(500).json({ error: 'Ошибка получения статистики' });
-            }
+        // Если указан textId, получаем статистику только для этого текста
+        if (textId) {
+            // Проверяем доступ к тексту
+            req.db.getTextById(textId, (err, text) => {
+                if (err) {
+                    console.error('Ошибка получения текста:', err);
+                    return res.status(500).json({ error: 'Ошибка получения текста' });
+                }
 
-            res.json({ sessions });
-        });
+                if (!text || text.user_id !== userId) {
+                    return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+                }
+
+                req.db.getTrainingSessionsByTextIdWithInfo(userId, textId, (err, sessions) => {
+                    if (err) {
+                        console.error('Ошибка получения статистики:', err);
+                        return res.status(500).json({ error: 'Ошибка получения статистики' });
+                    }
+
+                    res.json({ sessions, text });
+                });
+            });
+        } else {
+            // Получаем общую статистику
+            req.db.getTrainingSessionsWithTextInfo(userId, (err, sessions) => {
+                if (err) {
+                    console.error('Ошибка получения статистики:', err);
+                    return res.status(500).json({ error: 'Ошибка получения статистики' });
+                }
+
+                res.json({ sessions });
+            });
+        }
     } catch (error) {
         console.error('Ошибка получения статистики:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });

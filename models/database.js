@@ -290,6 +290,22 @@ class Database {
         this.db.all(query, [userId], callback);
     }
 
+    getTrainingSessionsByTextIdWithInfo(userId, textId, callback) {
+        const query = `
+            SELECT 
+                ts.id,
+                ts.text_id,
+                ts.duration_seconds,
+                ts.created_at,
+                t.title as text_title
+            FROM training_sessions ts
+            JOIN texts t ON ts.text_id = t.id
+            WHERE ts.user_id = ? AND ts.text_id = ?
+            ORDER BY ts.created_at DESC
+        `;
+        this.db.all(query, [userId, textId], callback);
+    }
+
     deleteTrainingSession(sessionId, callback) {
         const query = `DELETE FROM training_sessions WHERE id = ?`;
         this.db.run(query, [sessionId], function(err) {
