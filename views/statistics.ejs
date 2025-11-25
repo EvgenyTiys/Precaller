@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/training.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         .statistics-container {
             display: flex;
@@ -300,6 +301,10 @@
                                 <input type="checkbox" id="logScaleCheckbox" checked>
                                 <span>Логарифмическая шкала Y</span>
                             </label>
+                            <label>
+                                <input type="checkbox" id="realTimeAxisCheckbox">
+                                <span>Реальные интервалы времени</span>
+                            </label>
                             <div class="threshold-input-group">
                                 <label for="thresholdInput">Порог:</label>
                                 <input type="text" id="thresholdInput" class="threshold-input" placeholder="чч:мм:сс" value="">
@@ -329,6 +334,7 @@
 
             // Обработчики
             document.getElementById('logScaleCheckbox').addEventListener('change', updateChart);
+            document.getElementById('realTimeAxisCheckbox').addEventListener('change', updateChart);
             document.getElementById('setThresholdBtn').addEventListener('click', setThreshold);
             document.getElementById('backToTextsBtn').addEventListener('click', showTextSelection);
             document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -541,85 +547,245 @@
             if (sessionsData.length === 0) return;
 
             const isLogScale = document.getElementById('logScaleCheckbox').checked;
+            const useRealTimeAxis = document.getElementById('realTimeAxisCheckbox').checked;
             
             // Сортируем по дате (старые первыми для графика)
             const sortedSessions = [...sessionsData].reverse();
             
-            const labels = sortedSessions.map(s => formatDateTime(s.created_at));
-            const data = sortedSessions.map(s => s.duration_seconds);
-
             const ctx = document.getElementById('progressChart');
             
             if (chartInstance) {
                 chartInstance.destroy();
             }
 
-            const datasets = [{
-                label: 'Время тренировки (сек)',
-                data: data,
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                tension: 0.1
-            }];
+            let datasets = [];
+            let chartConfig = {};
 
-            // Добавляем линию порога, если задан
-            if (thresholdSeconds !== null) {
+            if (useRealTimeAxis) {
+                // Режим с реальными интервалами времени
+                const dataPoints = sortedSessions.map(s => ({
+                    x: new Date(s.created_at).getTime(),
+                    y: s.duration_seconds
+                }));
+
                 datasets.push({
-                    label: 'Порог',
-                    data: new Array(data.length).fill(thresholdSeconds),
-                    borderColor: 'rgb(40, 167, 69)',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 0,
-                    fill: false
+                    label: 'Время тренировки',
+                    data: dataPoints,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
                 });
-            }
 
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            type: isLogScale ? 'logarithmic' : 'linear',
-                            beginAtZero: !isLogScale,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatDuration(value);
+                // Вычисляем экспоненциальную линию тренда
+                const trendLine = calculateExponentialTrend(dataPoints);
+                if (trendLine.length > 0) {
+                    datasets.push({
+                        label: 'Экспоненциальный тренд',
+                        data: trendLine,
+                        borderColor: 'rgb(255, 99, 132)',
+                        borderWidth: 2,
+                        borderDash: [10, 5],
+                        pointRadius: 0,
+                        fill: false
+                    });
+                }
+
+                // Добавляем линию порога, если задан
+                if (thresholdSeconds !== null) {
+                    const minTime = Math.min(...dataPoints.map(p => p.x));
+                    const maxTime = Math.max(...dataPoints.map(p => p.x));
+                    datasets.push({
+                        label: 'Порог',
+                        data: [
+                            { x: minTime, y: thresholdSeconds },
+                            { x: maxTime, y: thresholdSeconds }
+                        ],
+                        borderColor: 'rgb(40, 167, 69)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    });
+                }
+
+                chartConfig = {
+                    type: 'line',
+                    data: { datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: isLogScale ? 'logarithmic' : 'linear',
+                                beginAtZero: !isLogScale,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatDuration(value);
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Время'
                                 }
                             },
-                            title: {
-                                display: true,
-                                text: 'Время'
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'day',
+                                    displayFormats: {
+                                        day: 'dd.MM.yyyy'
+                                    },
+                                    tooltipFormat: 'dd.MM.yyyy HH:mm'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Дата'
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
                             }
                         },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Дата и время'
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatDuration(context.parsed.y);
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.dataset.label === 'Время тренировки') {
+                                            return context.dataset.label + ': ' + formatDuration(context.parsed.y);
+                                        }
+                                        return context.dataset.label + ': ' + formatDuration(context.parsed.y);
+                                    }
                                 }
                             }
                         }
                     }
+                };
+            } else {
+                // Обычный режим (категориальная ось X)
+                const labels = sortedSessions.map(s => formatDateTime(s.created_at));
+                const data = sortedSessions.map(s => s.duration_seconds);
+
+                datasets.push({
+                    label: 'Время тренировки (сек)',
+                    data: data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                });
+
+                // Добавляем линию порога, если задан
+                if (thresholdSeconds !== null) {
+                    datasets.push({
+                        label: 'Порог',
+                        data: new Array(data.length).fill(thresholdSeconds),
+                        borderColor: 'rgb(40, 167, 69)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    });
                 }
-            });
+
+                chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: isLogScale ? 'logarithmic' : 'linear',
+                                beginAtZero: !isLogScale,
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatDuration(value);
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Время'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Дата и время'
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + formatDuration(context.parsed.y);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            chartInstance = new Chart(ctx, chartConfig);
+        }
+
+        // Вычисление экспоненциальной линии тренда
+        function calculateExponentialTrend(dataPoints) {
+            if (dataPoints.length < 2) return [];
+
+            // Для экспоненциальной регрессии y = a * e^(b*x)
+            // Используем логарифмическое преобразование: ln(y) = ln(a) + b*x
+            // Это превращает задачу в линейную регрессию
+            
+            const validPoints = dataPoints.filter(p => p.y > 0); // Только положительные значения
+            if (validPoints.length < 2) return [];
+
+            // Нормализуем время к диапазону 0..1 для стабильности вычислений
+            const minX = Math.min(...validPoints.map(p => p.x));
+            const maxX = Math.max(...validPoints.map(p => p.x));
+            const xRange = maxX - minX || 1;
+
+            const normalizedPoints = validPoints.map(p => ({
+                x: (p.x - minX) / xRange,
+                y: p.y,
+                logY: Math.log(p.y)
+            }));
+
+            // Линейная регрессия для ln(y) = ln(a) + b*x
+            const n = normalizedPoints.length;
+            const sumX = normalizedPoints.reduce((sum, p) => sum + p.x, 0);
+            const sumLogY = normalizedPoints.reduce((sum, p) => sum + p.logY, 0);
+            const sumXLogY = normalizedPoints.reduce((sum, p) => sum + p.x * p.logY, 0);
+            const sumX2 = normalizedPoints.reduce((sum, p) => sum + p.x * p.x, 0);
+
+            const b = (n * sumXLogY - sumX * sumLogY) / (n * sumX2 - sumX * sumX);
+            const logA = (sumLogY - b * sumX) / n;
+            const a = Math.exp(logA);
+
+            // Генерируем точки для линии тренда
+            const trendPoints = [];
+            const numPoints = 100; // Количество точек для плавной линии
+            
+            for (let i = 0; i <= numPoints; i++) {
+                const normalizedX = i / numPoints;
+                const realX = minX + normalizedX * xRange;
+                const y = a * Math.exp(b * normalizedX);
+                
+                trendPoints.push({
+                    x: realX,
+                    y: y
+                });
+            }
+
+            return trendPoints;
         }
 
         async function deleteSession(sessionId) {
