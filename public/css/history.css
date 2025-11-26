@@ -1,0 +1,303 @@
+/* Стили для страницы истории тренировок */
+
+/* Выбор текста */
+.history-selection {
+    width: 90%;
+    max-width: none;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.history-selection h2 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.texts-list {
+    display: grid;
+    gap: 1.5rem;
+    margin: 1rem 0;
+}
+
+.text-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.text-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.15);
+}
+
+.text-item h3 {
+    color: #2c3e50;
+    margin: 0 0 0.5rem 0;
+}
+
+.text-stats {
+    display: flex;
+    gap: 2rem;
+    color: #667eea;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.text-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.text-stats i {
+    font-size: 1rem;
+}
+
+/* Выбор фрагмента */
+.fragment-selection {
+    width: 90%;
+    max-width: none;
+    margin: 0 auto;
+}
+
+.fragment-selection h2 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.fragments-list {
+    display: grid;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.fragment-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.fragment-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.15);
+}
+
+.fragment-number {
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 0.5rem;
+}
+
+.fragment-preview {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Просмотр истории */
+.history-view {
+    width: 90%;
+    max-width: none;
+    margin: 0 auto;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.history-header h2 {
+    color: #2c3e50;
+    margin: 0;
+}
+
+.history-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Оригинальный текст */
+.original-text-container {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.text-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.original-text {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #2c3e50;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* История ввода */
+.inputs-history {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.input-item {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.input-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.input-date {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.input-distance {
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.input-distance strong {
+    color: #667eea;
+    font-size: 1rem;
+}
+
+/* Выровненные тексты */
+.aligned-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.aligned-text {
+    padding: 1rem;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    letter-spacing: 0.5px;
+}
+
+.original-aligned {
+    background: #e7f3ff;
+    color: #2c3e50;
+    border: 1px solid #b3d9ff;
+}
+
+.input-aligned {
+    background: #fff;
+    color: #2c3e50;
+    border: 1px solid #dee2e6;
+}
+
+/* Подсветка различий */
+.input-aligned .char-match {
+    color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.input-aligned .char-delete {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.2);
+    text-decoration: line-through;
+}
+
+.input-aligned .char-insert {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.2);
+    font-weight: 600;
+}
+
+.input-aligned .char-replace {
+    color: #ffc107;
+    background: rgba(255, 193, 7, 0.2);
+    font-weight: 600;
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .history-selection,
+    .fragment-selection,
+    .history-view {
+        width: 100%;
+    }
+
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .input-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .aligned-text {
+        font-size: 0.95rem;
+        padding: 0.75rem;
+    }
+
+    .text-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+

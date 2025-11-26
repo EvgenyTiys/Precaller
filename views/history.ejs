@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История тренировок - <%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/history.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">
+                <a href="/">История тренировок</a>
+            </h1>
+            <nav class="nav">
+                <a href="/" class="nav-link">Главная</a>
+                <a href="/training" class="nav-link">Тренировка</a>
+                <a href="/statistics" class="nav-link">Статистика</a>
+                <div class="user-menu" id="userMenu">
+                    <span class="username" id="username"></span>
+                    <button class="logout-btn" id="logoutBtn">Выйти</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <!-- Выбор текста -->
+            <div class="history-selection" id="textSelection">
+                <h2>Выберите текст для просмотра истории</h2>
+                <div class="texts-list" id="textsList">
+                    <!-- Тексты будут загружены динамически -->
+                </div>
+            </div>
+
+            <!-- Выбор фрагмента -->
+            <div class="fragment-selection" id="fragmentSelection" style="display: none;">
+                <h2 id="selectedTextTitle">Название текста</h2>
+                <button class="btn btn-secondary" id="backToTextsBtn">
+                    <i class="fas fa-arrow-left"></i> Назад к текстам
+                </button>
+                <div class="fragments-list" id="fragmentsList">
+                    <!-- Фрагменты будут загружены динамически -->
+                </div>
+            </div>
+
+            <!-- Просмотр истории фрагмента -->
+            <div class="history-view" id="historyView" style="display: none;">
+                <div class="history-header">
+                    <h2 id="historyFragmentTitle">Фрагмент #<span id="fragmentNumber">0</span></h2>
+                    <button class="btn btn-secondary" id="backToFragmentsBtn">
+                        <i class="fas fa-arrow-left"></i> Назад к фрагментам
+                    </button>
+                </div>
+                
+                <div class="history-content">
+                    <!-- Оригинальный текст -->
+                    <div class="original-text-container">
+                        <div class="text-label">Оригинальный текст:</div>
+                        <div class="text-display original-text" id="originalText"></div>
+                    </div>
+
+                    <!-- История ввода -->
+                    <div class="inputs-history" id="inputsHistory">
+                        <!-- История будет загружена динамически -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Приложение для запоминания текстов</p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/historyUtils.js"></script>
+    <script src="/js/history.js"></script>
+</body>
+</html>
+

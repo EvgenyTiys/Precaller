@@ -44,6 +44,7 @@ function initializeMenuHandlers() {
     const selectTextOption = document.getElementById('selectTextOption');
     const trainingOption = document.getElementById('trainingOption');
     const statisticsOption = document.getElementById('statisticsOption');
+    const historyOption = document.getElementById('historyOption');
     const textsLink = document.getElementById('textsLink');
     const trainingLink = document.getElementById('trainingLink');
     
@@ -64,6 +65,12 @@ function initializeMenuHandlers() {
     if (statisticsOption) {
         statisticsOption.addEventListener('click', function() {
             window.location.href = '/statistics';
+        });
+    }
+    
+    if (historyOption) {
+        historyOption.addEventListener('click', function() {
+            window.location.href = '/history';
         });
     }
     

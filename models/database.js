@@ -77,6 +77,16 @@ class Database {
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id),
                 FOREIGN KEY (text_id) REFERENCES texts (id)
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS training_fragment_inputs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                session_id INTEGER NOT NULL,
+                fragment_id INTEGER NOT NULL,
+                user_input TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (session_id) REFERENCES training_sessions (id) ON DELETE CASCADE,
+                FOREIGN KEY (fragment_id) REFERENCES text_fragments (id)
             )`
         ];
 
@@ -99,6 +109,8 @@ class Database {
             `CREATE INDEX IF NOT EXISTS idx_training_sessions_user_id ON training_sessions(user_id)`,
             `CREATE INDEX IF NOT EXISTS idx_training_sessions_text_id ON training_sessions(text_id)`,
             `CREATE INDEX IF NOT EXISTS idx_training_sessions_created_at ON training_sessions(created_at)`,
+            `CREATE INDEX IF NOT EXISTS idx_training_fragment_inputs_session_id ON training_fragment_inputs(session_id)`,
+            `CREATE INDEX IF NOT EXISTS idx_training_fragment_inputs_fragment_id ON training_fragment_inputs(fragment_id)`,
             
             // REF-15: Составной индекс для оптимизации запросов с сортировкой
             `CREATE INDEX IF NOT EXISTS idx_fragments_text_order ON text_fragments(text_id, fragment_order)`,
@@ -311,6 +323,49 @@ class Database {
         this.db.run(query, [sessionId], function(err) {
             callback(err, this.changes);
         });
+    }
+
+    // Методы для работы с введенными фрагментами во время тренировок
+    createTrainingFragmentInput(sessionId, fragmentId, userInput, callback) {
+        const query = `INSERT INTO training_fragment_inputs (session_id, fragment_id, user_input) VALUES (?, ?, ?)`;
+        this.db.run(query, [sessionId, fragmentId, userInput], function(err) {
+            callback(err, this.lastID);
+        });
+    }
+
+    getTrainingFragmentInputsByFragmentId(fragmentId, callback) {
+        const query = `
+            SELECT 
+                tfi.id,
+                tfi.session_id,
+                tfi.fragment_id,
+                tfi.user_input,
+                tfi.created_at,
+                ts.created_at as session_created_at
+            FROM training_fragment_inputs tfi
+            JOIN training_sessions ts ON tfi.session_id = ts.id
+            WHERE tfi.fragment_id = ?
+            ORDER BY ts.created_at DESC, tfi.created_at DESC
+        `;
+        this.db.all(query, [fragmentId], callback);
+    }
+
+    getTrainingFragmentInputsBySessionId(sessionId, callback) {
+        const query = `
+            SELECT 
+                tfi.id,
+                tfi.session_id,
+                tfi.fragment_id,
+                tfi.user_input,
+                tfi.created_at,
+                tf.content as fragment_content,
+                tf.fragment_order
+            FROM training_fragment_inputs tfi
+            JOIN text_fragments tf ON tfi.fragment_id = tf.id
+            WHERE tfi.session_id = ?
+            ORDER BY tf.fragment_order
+        `;
+        this.db.all(query, [sessionId], callback);
     }
 
     close() {

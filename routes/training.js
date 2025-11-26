@@ -87,7 +87,7 @@ router.get('/available', authenticateToken, (req, res) => {
 // Сохранение времени тренировки
 router.post('/session', authenticateToken, (req, res) => {
     try {
-        const { textId, durationSeconds } = req.body;
+        const { textId, durationSeconds, fragmentInputs } = req.body;
         const userId = req.user.id;
         
         const MAX_DURATION = 86400; // 24 hours in seconds
@@ -116,11 +116,72 @@ router.post('/session', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: 'Ошибка сохранения сессии тренировки' });
                 }
 
-                res.json({ 
-                    success: true, 
-                    sessionId,
-                    message: 'Время тренировки сохранено'
-                });
+                // Сохраняем введенные фрагменты, если они есть
+                if (fragmentInputs && Array.isArray(fragmentInputs) && fragmentInputs.length > 0) {
+                    // Получаем фрагменты текста для сопоставления
+                    req.db.getFragmentsByTextId(textId, (err, fragments) => {
+                        if (err) {
+                            console.error('Ошибка получения фрагментов:', err);
+                            // Не прерываем сохранение, просто возвращаем успех без фрагментов
+                            return res.json({ 
+                                success: true, 
+                                sessionId,
+                                message: 'Время тренировки сохранено (фрагменты не сохранены из-за ошибки)'
+                            });
+                        }
+
+                        // Сохраняем введенные фрагменты
+                        const savePromises = [];
+                        let savedCount = 0;
+                        
+                        fragmentInputs.forEach((input, index) => {
+                            if (input && input.trim() !== '' && fragments[index]) {
+                                const promise = new Promise((resolve) => {
+                                    req.db.createTrainingFragmentInput(
+                                        sessionId,
+                                        fragments[index].id,
+                                        input.trim(),
+                                        (err) => {
+                                            if (err) {
+                                                console.error(`Ошибка сохранения введенного фрагмента ${index}:`, err);
+                                            } else {
+                                                savedCount++;
+                                            }
+                                            resolve();
+                                        }
+                                    );
+                                });
+                                savePromises.push(promise);
+                            }
+                        });
+
+                        // Ждем завершения всех сохранений
+                        Promise.all(savePromises).then(() => {
+                            res.json({ 
+                                success: true, 
+                                sessionId,
+                                message: savedCount > 0 
+                                    ? `Время тренировки и ${savedCount} введенных фрагментов сохранены`
+                                    : 'Время тренировки сохранено',
+                                savedInputs: savedCount
+                            });
+                        }).catch((error) => {
+                            console.error('Ошибка при сохранении фрагментов:', error);
+                            res.json({ 
+                                success: true, 
+                                sessionId,
+                                message: 'Время тренировки сохранено (некоторые фрагменты не сохранены)',
+                                savedInputs: savedCount
+                            });
+                        });
+                    });
+                } else {
+                    res.json({ 
+                        success: true, 
+                        sessionId,
+                        message: 'Время тренировки сохранено'
+                    });
+                }
             });
         });
     } catch (error) {
@@ -170,6 +231,64 @@ router.get('/statistics', authenticateToken, (req, res) => {
         }
     } catch (error) {
         console.error('Ошибка получения статистики:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Получение истории ввода фрагмента
+router.get('/fragment/:fragmentId/history', authenticateToken, (req, res) => {
+    try {
+        const fragmentId = req.params.fragmentId;
+        const userId = req.user.id;
+
+        // Проверяем доступ к фрагменту
+        req.db.getFragmentById(fragmentId, (err, fragment) => {
+            if (err) {
+                console.error('Ошибка получения фрагмента:', err);
+                return res.status(500).json({ error: 'Ошибка получения фрагмента' });
+            }
+
+            if (!fragment) {
+                return res.status(404).json({ error: 'Фрагмент не найден' });
+            }
+
+            // Проверяем доступ к тексту
+            req.db.getTextById(fragment.text_id, (err, text) => {
+                if (err) {
+                    console.error('Ошибка получения текста:', err);
+                    return res.status(500).json({ error: 'Ошибка получения текста' });
+                }
+
+                if (!text || text.user_id !== userId) {
+                    return res.status(403).json({ error: 'Нет доступа к этому фрагменту' });
+                }
+
+                // Получаем историю ввода фрагмента
+                req.db.getTrainingFragmentInputsByFragmentId(fragmentId, (err, inputs) => {
+                    if (err) {
+                        console.error('Ошибка получения истории ввода:', err);
+                        return res.status(500).json({ error: 'Ошибка получения истории ввода' });
+                    }
+
+                    res.json({
+                        fragment: {
+                            id: fragment.id,
+                            content: fragment.content,
+                            order: fragment.fragment_order
+                        },
+                        inputs: inputs.map(input => ({
+                            id: input.id,
+                            userInput: input.user_input,
+                            sessionId: input.session_id,
+                            createdAt: input.created_at,
+                            sessionCreatedAt: input.session_created_at
+                        }))
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка получения истории ввода фрагмента:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });

@@ -65,6 +65,11 @@ app.get('/training', (req, res) => {
     res.render('training', { title: 'Тренировка' });
 });
 
+// Страница истории тренировок
+app.get('/history', (req, res) => {
+    res.render('history', { title: 'История тренировок' });
+});
+
 // Страница статистики
 app.get('/statistics', (req, res) => {
     res.render('statistics', { title: 'Статистика' });

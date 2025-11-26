@@ -1482,12 +1482,13 @@ async function finishTraining() {
         
         window.app.showLoader();
         
-        // Сохраняем время тренировки в БД
+        // Сохраняем время тренировки и введенные фрагменты в БД
         await window.app.apiRequest('/api/training/session', {
             method: 'POST',
             body: JSON.stringify({
                 textId: currentTextId,
-                durationSeconds: elapsedSeconds
+                durationSeconds: elapsedSeconds,
+                fragmentInputs: userInputs || []
             })
         });
         
