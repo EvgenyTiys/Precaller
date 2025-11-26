@@ -286,8 +286,8 @@ function showHistoryView(originalText, fragmentNumber, inputs) {
         // Вычисляем Манхэттенское расстояние
         const distance = HistoryUtils.manhattanDistance(originalText, input.userInput);
 
-        // Выравниваем тексты
-        const aligned = HistoryUtils.advancedAlign(originalText, input.userInput);
+        // Выравниваем тексты на уровне слов (слова не разрываются)
+        const aligned = HistoryUtils.wordLevelAlign(originalText, input.userInput);
 
         // Заголовок с датой и расстоянием
         const header = document.createElement('div');
