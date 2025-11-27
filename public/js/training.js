@@ -181,18 +181,8 @@ function handleKeyboardShortcuts(event) {
             finishTraining();
             return;
         }
-        // На первом слайде (слайд ввода) клавиша "вправо" должна работать
-        if (event.key === 'ArrowRight' && currentFragmentIndex === INPUT_SLIDE_INDEX) {
-            event.preventDefault();
-            const continueBtn = document.getElementById('continueBtn');
-            if (continueBtn && continueBtn.style.display !== 'none' && continueBtn.offsetParent !== null) {
-                continueBtn.click();
-            } else {
-                continueFromInput();
-            }
-            return;
-        }
-        // Для остальных случаев в активном поле ввода не обрабатываем клавиши
+        // Для активного поля ввода (включая textarea) не обрабатываем навигационные клавиши
+        // Клавиша "вправо" должна работать как обычно (перемещать курсор)
         return;
     }
     // Если поле ввода readonly, продолжаем обработку клавиш для навигации (не возвращаемся)
