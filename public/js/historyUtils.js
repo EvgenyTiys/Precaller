@@ -415,6 +415,79 @@ const HistoryUtils = {
                     }
                 } else if (align.orig?.type === 'word' && align.inp?.type === 'word') {
                     // Выравнивание символов внутри слова с использованием Левенштейна
+                    // Сначала находим наибольшую общую подстроку для лучшего выравнивания
+                    const findLongestCommonSubstring = (str1, str2) => {
+                        const m = str1.length;
+                        const n = str2.length;
+                        let maxLen = 0;
+                        let endIndex = -1;
+                        const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+                        for (let i = 1; i <= m; i++) {
+                            for (let j = 1; j <= n; j++) {
+                                if (str1[i - 1] === str2[j - 1]) {
+                                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                                    if (dp[i][j] > maxLen) {
+                                        maxLen = dp[i][j];
+                                        endIndex = i - 1;
+                                    }
+                                } else {
+                                    dp[i][j] = 0;
+                                }
+                            }
+                        }
+
+                        if (maxLen > 0 && endIndex >= 0) {
+                            return {
+                                length: maxLen,
+                                startInStr1: endIndex - maxLen + 1,
+                                endInStr1: endIndex,
+                                substring: str1.substring(endIndex - maxLen + 1, endIndex + 1)
+                            };
+                        }
+                        return null;
+                    };
+
+                    // Находим наибольшую общую подстроку
+                    const lcs = findLongestCommonSubstring(origWord, inpWord);
+                    
+                    // Если есть значимая общая подстрока (больше 1 символа), выравниваем по ней
+                    let adjustedOrigWord = origWord;
+                    let adjustedInpWord = inpWord;
+
+                    if (lcs && lcs.length > 1) {
+                        // Находим все позиции этой подстроки во втором слове
+                        const lcsInOrig = lcs.startInStr1;
+                        let lcsInInp = -1;
+                        
+                        // Ищем первое вхождение подстроки во вводе
+                        for (let i = 0; i <= inpWord.length - lcs.length; i++) {
+                            if (inpWord.substring(i, i + lcs.length) === lcs.substring) {
+                                lcsInInp = i;
+                                break;
+                            }
+                        }
+
+                        if (lcsInInp >= 0) {
+                            // Вычисляем, сколько пробелов нужно добавить в оригинал
+                            if (lcsInInp > lcsInOrig) {
+                                // Нужно добавить пробелы в начало оригинала
+                                const prefixSpaces = lcsInInp - lcsInOrig;
+                                adjustedOrigWord = ' '.repeat(prefixSpaces) + origWord;
+                            }
+
+                            // Выравниваем по длине после общей подстроки
+                            const origAfterLcs = adjustedOrigWord.substring(lcsInOrig + lcs.length + (lcsInInp > lcsInOrig ? lcsInInp - lcsInOrig : 0));
+                            const inpAfterLcs = inpWord.substring(lcsInInp + lcs.length);
+                            const maxAfterLen = Math.max(origAfterLcs.length, inpAfterLcs.length);
+                            const suffixSpaces = maxAfterLen - origAfterLcs.length;
+                            
+                            if (suffixSpaces > 0) {
+                                adjustedOrigWord = adjustedOrigWord + ' '.repeat(suffixSpaces);
+                            }
+                        }
+                    }
+
                     const alignChars = (str1, str2) => {
                         const m = str1.length;
                         const n = str2.length;
@@ -491,7 +564,7 @@ const HistoryUtils = {
                         return alignment;
                     };
 
-                    const charAlignment = alignChars(origWord, inpWord);
+                    const charAlignment = alignChars(adjustedOrigWord, adjustedInpWord);
                     charAlignment.forEach(op => {
                         if (op.type === 'match') {
                             alignedOriginal.push(op.char);
@@ -571,6 +644,181 @@ const HistoryUtils = {
             alignedInput: alignedInput.join(''),
             operations
         };
+    },
+
+    /**
+     * Множественное выравнивание текстов относительно оригинала
+     * Выравнивает все тексты относительно оригинального текста, как при сравнении аминокислотных последовательностей
+     * 
+     * @param {string} original - Оригинальный текст
+     * @param {Array<Object>} inputs - Массив объектов с полями userInput, createdAt, sessionCreatedAt
+     * @returns {Array<Object>} - Массив выровненных текстов с метаданными
+     */
+    multipleAlignment(original, inputs) {
+        if (!original) {
+            return inputs.map((input, index) => ({
+                text: input.userInput || '',
+                aligned: input.userInput || '',
+                alignedOriginal: '',
+                operations: [],
+                distance: input.userInput ? input.userInput.length : 0,
+                createdAt: input.createdAt || input.sessionCreatedAt,
+                sessionCreatedAt: input.sessionCreatedAt
+            }));
+        }
+
+        // Сортируем входы по дате (от нового к старому)
+        const sortedInputs = [...inputs].sort((a, b) => {
+            const dateA = new Date(a.sessionCreatedAt || a.createdAt || 0);
+            const dateB = new Date(b.sessionCreatedAt || b.createdAt || 0);
+            return dateB - dateA; // Новые первыми
+        });
+
+        // Выравниваем каждый текст относительно оригинала
+        const alignedTexts = sortedInputs.map(input => {
+            const aligned = this.wordLevelAlign(original, input.userInput || '');
+            const distance = this.manhattanDistance(original, input.userInput || '');
+            
+            return {
+                text: input.userInput || '',
+                aligned: aligned.alignedInput,
+                alignedOriginal: aligned.alignedOriginal,
+                operations: aligned.operations,
+                distance: distance,
+                createdAt: input.createdAt,
+                sessionCreatedAt: input.sessionCreatedAt
+            };
+        });
+
+        // Находим максимальную длину среди всех выровненных текстов
+        let maxLength = 0;
+        alignedTexts.forEach(aligned => {
+            maxLength = Math.max(maxLength, aligned.aligned.length, aligned.alignedOriginal.length);
+        });
+
+        // Находим самый длинный выровненный оригинал - это будет базовый оригинал
+        // Он содержит все пробелы, необходимые для выравнивания
+        let baseAlignedOriginal = '';
+        let baseAlignedOriginalLength = 0;
+        alignedTexts.forEach(aligned => {
+            if (aligned.alignedOriginal.length > baseAlignedOriginalLength) {
+                baseAlignedOriginal = aligned.alignedOriginal;
+                baseAlignedOriginalLength = aligned.alignedOriginal.length;
+            }
+        });
+
+        // Если нет выровненных текстов, используем оригинал как есть
+        if (baseAlignedOriginalLength === 0) {
+            baseAlignedOriginal = original;
+            baseAlignedOriginalLength = original.length;
+        }
+
+        // Обновляем maxLength с учетом базового оригинала
+        maxLength = Math.max(maxLength, baseAlignedOriginalLength);
+
+        // Дополняем все тексты до максимальной длины пробелами справа
+        const padToLength = (str, len) => {
+            if (str.length >= len) return str;
+            return str + ' '.repeat(len - str.length);
+        };
+
+        // Создаем оригинальный текст на основе самого длинного выровненного оригинала
+        // Это гарантирует, что оригинал содержит все пробелы, необходимые для выравнивания
+        const originalPadded = padToLength(baseAlignedOriginal, maxLength);
+        const originalOperations = Array.from(originalPadded).map((char, i) => {
+            // Если это пробел, который был добавлен для выравнивания, помечаем как space
+            if (i >= baseAlignedOriginalLength && char === ' ') {
+                return { type: 'space', char: ' ' };
+            }
+            // Если это пробел в базовом оригинале (для выравнивания), помечаем как space
+            if (char === ' ' && i < baseAlignedOriginal.length && baseAlignedOriginal[i] === ' ') {
+                return { type: 'space', char: ' ' };
+            }
+            return { type: 'match', char: char };
+        });
+
+        // Добавляем оригинальный текст в начало
+        const originalResult = {
+            text: original,
+            aligned: originalPadded,
+            alignedOriginal: originalPadded,
+            operations: originalOperations,
+            distance: 0,
+            isOriginal: true
+        };
+
+        // Для каждого введенного текста пересчитываем выравнивание относительно базового оригинала
+        // Используем оригинальный текст для выравнивания, затем применяем пробелы из baseAlignedOriginal
+        const paddedTexts = alignedTexts.map(aligned => {
+            // Сначала выравниваем относительно оригинального текста (без пробелов выравнивания)
+            const realigned = this.wordLevelAlign(original, aligned.text);
+            
+            // Теперь применяем пробелы из baseAlignedOriginal к realigned.alignedOriginal
+            // Находим позиции пробелов в baseAlignedOriginal и вставляем их в realigned
+            let syncedOriginal = '';
+            let syncedInput = '';
+            let syncedOperations = [];
+            
+            let realignedIdx = 0; // Индекс в realigned.alignedOriginal (без пробелов выравнивания)
+            let baseIdx = 0; // Индекс в baseAlignedOriginal
+            
+            // Проходим по baseAlignedOriginal и синхронизируем с realigned
+            while (baseIdx < baseAlignedOriginal.length || realignedIdx < realigned.alignedOriginal.length) {
+                const baseChar = baseIdx < baseAlignedOriginal.length ? baseAlignedOriginal[baseIdx] : null;
+                const realignedOrigChar = realignedIdx < realigned.alignedOriginal.length ? realigned.alignedOriginal[realignedIdx] : null;
+                
+                // Если в базовом оригинале пробел, а в realigned - не пробел, добавляем пробел
+                if (baseChar === ' ' && realignedOrigChar !== ' ' && realignedOrigChar !== null) {
+                    syncedOriginal += ' ';
+                    syncedInput += ' ';
+                    syncedOperations.push({ type: 'space', char: ' ' });
+                    baseIdx++;
+                } else if (realignedOrigChar === ' ' && baseChar !== ' ' && baseChar !== null) {
+                    // Если в realigned пробел, а в базовом - не пробел, пропускаем пробел в realigned
+                    realignedIdx++;
+                } else if (baseChar !== null && realignedOrigChar !== null) {
+                    // Оба символа не пробелы, добавляем из realigned
+                    syncedOriginal += realignedOrigChar;
+                    syncedInput += realigned.alignedInput[realignedIdx] || ' ';
+                    syncedOperations.push(realigned.operations[realignedIdx] || { type: 'match', char: realignedOrigChar });
+                    realignedIdx++;
+                    baseIdx++;
+                } else if (baseChar === ' ') {
+                    // Только пробел в базовом
+                    syncedOriginal += ' ';
+                    syncedInput += ' ';
+                    syncedOperations.push({ type: 'space', char: ' ' });
+                    baseIdx++;
+                } else if (realignedOrigChar !== null) {
+                    // Только символ в realigned
+                    syncedOriginal += realignedOrigChar;
+                    syncedInput += realigned.alignedInput[realignedIdx] || ' ';
+                    syncedOperations.push(realigned.operations[realignedIdx] || { type: 'match', char: realignedOrigChar });
+                    realignedIdx++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Дополняем до maxLength
+            const paddedAligned = padToLength(syncedInput, maxLength);
+            const paddedOriginal = padToLength(syncedOriginal, maxLength);
+            
+            // Дополняем операции
+            const paddedOperations = [...syncedOperations];
+            while (paddedOperations.length < maxLength) {
+                paddedOperations.push({ type: 'match', char: ' ' });
+            }
+
+            return {
+                ...aligned,
+                aligned: paddedAligned,
+                alignedOriginal: paddedOriginal,
+                operations: paddedOperations.slice(0, maxLength)
+            };
+        });
+
+        return [originalResult, ...paddedTexts];
     }
 };
 

@@ -126,34 +126,12 @@
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
-/* Оригинальный текст */
+/* Оригинальный текст - скрыт, так как теперь он в таблице выравнивания */
 .original-text-container {
-    margin-bottom: 2rem;
-    padding-bottom: 2rem;
-    border-bottom: 2px solid #e9ecef;
-}
-
-.text-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.original-text {
-    font-family: 'Courier New', monospace;
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #2c3e50;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    display: none;
 }
 
 /* История ввода */
@@ -163,89 +141,200 @@
     gap: 2rem;
 }
 
-.input-item {
-    padding: 1.5rem;
-    background: #f8f9fa;
+/* Контейнер с горизонтальной прокруткой для множественного выравнивания */
+.alignment-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    border: 1px solid #dee2e6;
     border-radius: 8px;
-    border-left: 4px solid #667eea;
+    background: #f8f9fa;
+    padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f8f9fa;
 }
 
-.input-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #dee2e6;
+.alignment-scroll-container::-webkit-scrollbar {
+    height: 12px;
 }
 
-.input-date {
-    color: #6c757d;
-    font-size: 0.9rem;
+.alignment-scroll-container::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 6px;
 }
 
-.input-distance {
-    color: #495057;
-    font-size: 0.9rem;
+.alignment-scroll-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 6px;
 }
 
-.input-distance strong {
-    color: #667eea;
-    font-size: 1rem;
+.alignment-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #5568d3;
 }
 
-/* Выровненные тексты */
-.aligned-text-container {
+/* Таблица выравнивания */
+.alignment-table {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    font-family: 'Courier New', monospace;
-    font-size: 1.1rem;
+    gap: 0;
+    min-width: max-content;
+}
+
+/* Строка выравнивания */
+.alignment-row {
+    display: flex;
+    align-items: center;
+    min-height: 2rem;
+    font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+    font-size: 1rem;
+    font-weight: normal;
+    font-style: normal;
     line-height: 1.8;
+    white-space: nowrap;
 }
 
-.aligned-text {
-    padding: 1rem;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    letter-spacing: 0.5px;
+/* Контейнер метки */
+.alignment-label-container {
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    max-width: 200px;
+    padding: 0 1rem;
+    background: white;
+    border-right: 2px solid #dee2e6;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+    min-height: 2rem;
 }
 
-.original-aligned {
+.alignment-label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.label-original {
+    color: #667eea;
+}
+
+.label-input {
+    color: #6c757d;
+}
+
+/* Контейнер расстояний справа */
+.alignment-distance-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+    max-width: 60px;
+    padding: 0 1rem;
+    background: white;
+    border-left: 2px solid #dee2e6;
+    position: sticky;
+    right: 0;
+    z-index: 10;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.05);
+    min-height: 2rem;
+    justify-content: center;
+}
+
+.alignment-distance-header {
+    font-size: 0.75rem;
+    color: #667eea;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-bottom: 0.25rem;
+}
+
+.alignment-distance-value {
+    font-size: 0.9rem;
+    color: #667eea;
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Контейнер текста */
+.alignment-text-container {
+    flex: 1;
+    padding: 0 !important;
+    background: white;
+    overflow-x: visible;
+    min-height: 2rem;
+    display: flex;
+    align-items: center;
+}
+
+.alignment-text-container * {
+    font-family: 'Courier New', 'Consolas', 'Monaco', monospace !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+}
+
+.aligned-text-line {
+    display: inline-block;
+    letter-spacing: 0 !important;
+    white-space: pre;
+    word-break: keep-all;
+    font-family: 'Courier New', 'Consolas', 'Monaco', monospace !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    line-height: 1.8;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.original-line {
+    color: #2c3e50;
     background: #e7f3ff;
-    color: #2c3e50;
-    border: 1px solid #b3d9ff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', 'Consolas', 'Monaco', monospace !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
+    font-style: normal !important;
 }
 
-.input-aligned {
-    background: #fff;
+.input-line {
     color: #2c3e50;
-    border: 1px solid #dee2e6;
+    font-family: 'Courier New', 'Consolas', 'Monaco', monospace !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
+    font-style: normal !important;
 }
 
 /* Подсветка различий */
-.input-aligned .char-match {
+.input-line .char-match {
     color: #28a745;
     background: rgba(40, 167, 69, 0.1);
 }
 
-.input-aligned .char-delete {
+.input-line .char-delete {
     color: #dc3545;
     background: rgba(220, 53, 69, 0.2);
     text-decoration: line-through;
 }
 
-.input-aligned .char-insert {
+.input-line .char-insert {
     color: #007bff;
     background: rgba(0, 123, 255, 0.2);
     font-weight: 600;
 }
 
-.input-aligned .char-replace {
+.input-line .char-replace {
     color: #ffc107;
     background: rgba(255, 193, 7, 0.2);
     font-weight: 600;
+}
+
+.input-line .char-space {
+    color: #6c757d;
 }
 
 /* Пустое состояние */
@@ -284,15 +373,26 @@
         gap: 1rem;
     }
 
-    .input-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    .alignment-label-container {
+        min-width: 150px;
+        max-width: 150px;
+        padding: 0.5rem 0.75rem;
     }
 
-    .aligned-text {
-        font-size: 0.95rem;
-        padding: 0.75rem;
+    .alignment-label {
+        font-size: 0.8rem;
+    }
+
+    .alignment-distance {
+        font-size: 0.75rem;
+    }
+
+    .alignment-text-container {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .aligned-text-line {
+        font-size: 0.9rem;
     }
 
     .text-stats {

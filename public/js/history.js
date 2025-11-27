@@ -251,12 +251,6 @@ function showHistoryView(originalText, fragmentNumber, inputs) {
         fragmentNumberSpan.textContent = fragmentNumber;
     }
 
-    // Отображаем оригинальный текст
-    const originalTextElement = document.getElementById('originalText');
-    if (originalTextElement) {
-        originalTextElement.textContent = originalText;
-    }
-
     // Отображаем историю ввода
     const inputsHistory = document.getElementById('inputsHistory');
     if (!inputsHistory) return;
@@ -274,68 +268,106 @@ function showHistoryView(originalText, fragmentNumber, inputs) {
         return;
     }
 
-    // Сортируем по дате (от последней к первой)
-    const sortedInputs = [...inputs].sort((a, b) => {
-        return new Date(b.sessionCreatedAt || b.createdAt) - new Date(a.sessionCreatedAt || a.createdAt);
-    });
+    // Множественное выравнивание всех текстов
+    const alignedTexts = HistoryUtils.multipleAlignment(originalText, inputs);
 
-    sortedInputs.forEach((input, index) => {
-        const inputItem = document.createElement('div');
-        inputItem.className = 'input-item';
+    // Создаем контейнер с горизонтальной прокруткой
+    const scrollContainer = document.createElement('div');
+    scrollContainer.className = 'alignment-scroll-container';
 
-        // Вычисляем Манхэттенское расстояние
-        const distance = HistoryUtils.manhattanDistance(originalText, input.userInput);
+    // Создаем таблицу для выравнивания
+    const alignmentTable = document.createElement('div');
+    alignmentTable.className = 'alignment-table';
 
-        // Выравниваем тексты на уровне слов (слова не разрываются)
-        const aligned = HistoryUtils.wordLevelAlign(originalText, input.userInput);
+    // Добавляем строки для каждого текста
+    alignedTexts.forEach((aligned, index) => {
+        const row = document.createElement('div');
+        row.className = 'alignment-row';
 
-        // Заголовок с датой и расстоянием
-        const header = document.createElement('div');
-        header.className = 'input-header';
-        header.innerHTML = `
-            <span class="input-date">${formatDate(input.sessionCreatedAt || input.createdAt)}</span>
-            <span class="input-distance">Манхэттенское расстояние: <strong>${distance}</strong></span>
-        `;
+        // Левая часть с меткой
+        const labelContainer = document.createElement('div');
+        labelContainer.className = 'alignment-label-container';
 
-        // Выровненный текст
-        const alignedContainer = document.createElement('div');
-        alignedContainer.className = 'aligned-text-container';
+        const label = document.createElement('div');
+        label.className = 'alignment-label';
+        if (aligned.isOriginal) {
+            label.textContent = 'Оригинал';
+            label.classList.add('label-original');
+        } else {
+            label.textContent = formatDate(aligned.sessionCreatedAt || aligned.createdAt);
+            label.classList.add('label-input');
+        }
 
-        // Оригинал (для сравнения)
-        const originalAligned = document.createElement('div');
-        originalAligned.className = 'aligned-text original-aligned';
-        originalAligned.textContent = aligned.alignedOriginal;
+        labelContainer.appendChild(label);
 
-        // Введенный текст с подсветкой различий
-        const inputAligned = document.createElement('div');
-        inputAligned.className = 'aligned-text input-aligned';
+        // Средняя часть с выровненным текстом
+        const textContainer = document.createElement('div');
+        textContainer.className = 'alignment-text-container';
+
+        if (aligned.isOriginal) {
+            // Оригинальный текст без подсветки (все символы совпадают)
+            const textSpan = document.createElement('span');
+            textSpan.className = 'aligned-text-line original-line';
+            textSpan.textContent = aligned.aligned;
+            textContainer.appendChild(textSpan);
+        } else {
+            // Введенный текст с подсветкой различий
+            const textSpan = document.createElement('span');
+            textSpan.className = 'aligned-text-line input-line';
+            
+            // Создаем элементы для каждого символа с подсветкой
+            const textChars = Array.from(aligned.aligned);
+            aligned.operations.forEach((op, i) => {
+                const charSpan = document.createElement('span');
+                charSpan.textContent = textChars[i] || ' ';
+                
+                if (op.type === 'match' || op.type === 'space') {
+                    charSpan.className = 'char-match';
+                } else if (op.type === 'delete') {
+                    charSpan.className = 'char-delete';
+                } else if (op.type === 'insert') {
+                    charSpan.className = 'char-insert';
+                } else if (op.type === 'replace') {
+                    charSpan.className = 'char-replace';
+                }
+                
+                textSpan.appendChild(charSpan);
+            });
+
+            textContainer.appendChild(textSpan);
+        }
+
+        // Правая часть с расстоянием
+        const distanceContainer = document.createElement('div');
+        distanceContainer.className = 'alignment-distance-container';
         
-        // Создаем элементы для каждого символа с подсветкой
-        const inputChars = Array.from(aligned.alignedInput);
-        aligned.operations.forEach((op, i) => {
-            const span = document.createElement('span');
-            span.textContent = inputChars[i] || ' ';
+        if (aligned.isOriginal) {
+            // Для оригинального текста добавляем заголовок "d"
+            const distanceHeader = document.createElement('div');
+            distanceHeader.className = 'alignment-distance-header';
+            distanceHeader.textContent = 'd';
+            distanceContainer.appendChild(distanceHeader);
             
-            if (op.type === 'match') {
-                span.className = 'char-match';
-            } else if (op.type === 'delete') {
-                span.className = 'char-delete';
-            } else if (op.type === 'insert') {
-                span.className = 'char-insert';
-            } else if (op.type === 'replace') {
-                span.className = 'char-replace';
-            }
-            
-            inputAligned.appendChild(span);
-        });
+            const distanceValue = document.createElement('div');
+            distanceValue.className = 'alignment-distance-value';
+            distanceValue.textContent = '—';
+            distanceContainer.appendChild(distanceValue);
+        } else {
+            // Для остальных строк добавляем только значение
+            const distanceValue = document.createElement('div');
+            distanceValue.className = 'alignment-distance-value';
+            distanceValue.textContent = aligned.distance;
+            distanceContainer.appendChild(distanceValue);
+        }
 
-        alignedContainer.appendChild(originalAligned);
-        alignedContainer.appendChild(inputAligned);
-
-        inputItem.appendChild(header);
-        inputItem.appendChild(alignedContainer);
-        inputsHistory.appendChild(inputItem);
+        row.appendChild(labelContainer);
+        row.appendChild(textContainer);
+        row.appendChild(distanceContainer);
+        alignmentTable.appendChild(row);
     });
+
+    scrollContainer.appendChild(alignmentTable);
+    inputsHistory.appendChild(scrollContainer);
 }
 
 // Показать выбор текстов
