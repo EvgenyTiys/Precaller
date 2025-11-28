@@ -577,11 +577,34 @@
                 });
 
                 // Вычисляем экспоненциальную линию тренда
-                const trendLine = calculateExponentialTrend(dataPoints);
+                const trendResult = calculateExponentialTrend(dataPoints);
+                const trendLine = trendResult.points;
+                const trendParams = trendResult.params;
+                
+                let intersectionTime = null;
+                
+                // Находим точку пересечения линии тренда с порогом
+                if (trendLine.length > 0 && thresholdSeconds !== null && trendParams) {
+                    intersectionTime = findTrendThresholdIntersection(trendParams, thresholdSeconds);
+                }
+                
                 if (trendLine.length > 0) {
+                    // Продлеваем линию тренда до пересечения, если оно есть
+                    let extendedTrendLine = [...trendLine];
+                    if (intersectionTime !== null) {
+                        const maxTime = Math.max(...dataPoints.map(p => p.x));
+                        if (intersectionTime > maxTime) {
+                            // Добавляем точку пересечения
+                            extendedTrendLine.push({
+                                x: intersectionTime,
+                                y: thresholdSeconds
+                            });
+                        }
+                    }
+                    
                     datasets.push({
                         label: 'Экспоненциальный тренд',
-                        data: trendLine,
+                        data: extendedTrendLine,
                         borderColor: 'rgb(255, 99, 132)',
                         borderWidth: 2,
                         borderDash: [10, 5],
@@ -593,7 +616,13 @@
                 // Добавляем линию порога, если задан
                 if (thresholdSeconds !== null) {
                     const minTime = Math.min(...dataPoints.map(p => p.x));
-                    const maxTime = Math.max(...dataPoints.map(p => p.x));
+                    let maxTime = Math.max(...dataPoints.map(p => p.x));
+                    
+                    // Продлеваем линию порога до пересечения, если оно есть
+                    if (intersectionTime !== null && intersectionTime > maxTime) {
+                        maxTime = intersectionTime;
+                    }
+                    
                     datasets.push({
                         label: 'Порог',
                         data: [
@@ -739,14 +768,14 @@
 
         // Вычисление экспоненциальной линии тренда
         function calculateExponentialTrend(dataPoints) {
-            if (dataPoints.length < 2) return [];
+            if (dataPoints.length < 2) return { points: [], params: null };
 
             // Для экспоненциальной регрессии y = a * e^(b*x)
             // Используем логарифмическое преобразование: ln(y) = ln(a) + b*x
             // Это превращает задачу в линейную регрессию
             
             const validPoints = dataPoints.filter(p => p.y > 0); // Только положительные значения
-            if (validPoints.length < 2) return [];
+            if (validPoints.length < 2) return { points: [], params: null };
 
             // Нормализуем время к диапазону 0..1 для стабильности вычислений
             const minX = Math.min(...validPoints.map(p => p.x));
@@ -785,7 +814,48 @@
                 });
             }
 
-            return trendPoints;
+            return {
+                points: trendPoints,
+                params: { a, b, minX, xRange }
+            };
+        }
+
+        // Находит точку пересечения линии тренда с порогом
+        function findTrendThresholdIntersection(trendParams, thresholdSeconds) {
+            const { a, b, minX, xRange } = trendParams;
+            
+            // Проверяем, что параметры валидны
+            if (!a || !b || !xRange || thresholdSeconds <= 0) {
+                return null;
+            }
+            
+            // Для экспоненциальной функции y = a * e^(b*x)
+            // Находим x, при котором y = thresholdSeconds
+            // thresholdSeconds = a * e^(b * normalizedX)
+            // normalizedX = ln(thresholdSeconds / a) / b
+            
+            // Проверяем, что порог достижим (a > thresholdSeconds для убывающей функции)
+            if (b >= 0) {
+                // Функция не убывает, пересечение может быть только в прошлом
+                return null;
+            }
+            
+            if (a <= thresholdSeconds) {
+                // Тренд уже ниже порога или равен ему
+                return null;
+            }
+            
+            const normalizedX = Math.log(thresholdSeconds / a) / b;
+            
+            // Проверяем, что пересечение в будущем (normalizedX > 1)
+            if (normalizedX <= 1) {
+                return null;
+            }
+            
+            // Преобразуем нормализованный x обратно в реальное время
+            const realX = minX + normalizedX * xRange;
+            
+            return realX;
         }
 
         async function deleteSession(sessionId) {
