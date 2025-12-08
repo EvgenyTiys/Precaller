@@ -368,6 +368,27 @@ class Database {
         this.db.all(query, [sessionId], callback);
     }
 
+    // Получение всех тренировок текста с их фрагментами для графика
+    getTrainingSessionsWithFragmentInputsByTextId(userId, textId, callback) {
+        const query = `
+            SELECT 
+                ts.id as session_id,
+                ts.created_at as session_created_at,
+                ts.duration_seconds,
+                tf.id as fragment_id,
+                tf.content as fragment_content,
+                tf.fragment_order,
+                tfi.user_input,
+                tfi.created_at as input_created_at
+            FROM training_sessions ts
+            LEFT JOIN training_fragment_inputs tfi ON ts.id = tfi.session_id
+            LEFT JOIN text_fragments tf ON tfi.fragment_id = tf.id
+            WHERE ts.user_id = ? AND ts.text_id = ?
+            ORDER BY ts.created_at ASC, tf.fragment_order ASC
+        `;
+        this.db.all(query, [userId, textId], callback);
+    }
+
     close() {
         this.db.close((err) => {
             if (err) {

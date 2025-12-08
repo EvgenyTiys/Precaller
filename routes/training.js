@@ -2,6 +2,101 @@ const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 
+// Функция расчета Манхеттенского расстояния (аналогично клиентской версии)
+function manhattanDistance(str1, str2) {
+    if (!str1 && !str2) {
+        return 0;
+    }
+    if (!str1) {
+        return str2.length;
+    }
+    if (!str2) {
+        return str1.length;
+    }
+
+    // Используем алгоритм Левенштейна для оптимального выравнивания
+    const m = str1.length;
+    const n = str2.length;
+    const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+    const path = Array(m + 1).fill(null).map(() => Array(n + 1).fill(null));
+
+    // Инициализация
+    for (let i = 0; i <= m; i++) {
+        dp[i][0] = i;
+        if (i > 0) {
+            path[i][0] = { op: 'delete', i: i - 1, j: 0 };
+        }
+    }
+    for (let j = 0; j <= n; j++) {
+        dp[0][j] = j;
+        if (j > 0) {
+            path[0][j] = { op: 'insert', i: 0, j: j - 1 };
+        }
+    }
+
+    // Заполнение матрицы
+    for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+            const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+            const replace = dp[i - 1][j - 1] + cost;
+            const del = dp[i - 1][j] + 1;
+            const ins = dp[i][j - 1] + 1;
+
+            if (replace <= del && replace <= ins) {
+                dp[i][j] = replace;
+                path[i][j] = { op: 'replace', i: i - 1, j: j - 1 };
+            } else if (del <= ins) {
+                dp[i][j] = del;
+                path[i][j] = { op: 'delete', i: i - 1, j: j };
+            } else {
+                dp[i][j] = ins;
+                path[i][j] = { op: 'insert', i: i, j: j - 1 };
+            }
+        }
+    }
+
+    // Восстановление пути и подсчет различий
+    let distance = 0;
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+        const p = path[i][j];
+        
+        if (!p) {
+            // Обработка оставшихся символов
+            if (i > 0) {
+                distance++;
+                i--;
+            } else if (j > 0) {
+                distance++;
+                j--;
+            } else {
+                break;
+            }
+            continue;
+        }
+
+        if (p.op === 'replace') {
+            const char1 = i > 0 ? str1[i - 1] : '';
+            const char2 = j > 0 ? str2[j - 1] : '';
+            if (char1 !== char2) {
+                distance++;
+            }
+            i = p.i;
+            j = p.j;
+        } else if (p.op === 'delete') {
+            distance++;
+            i = p.i;
+        } else if (p.op === 'insert') {
+            distance++;
+            j = p.j;
+        } else {
+            break;
+        }
+    }
+
+    return distance;
+}
+
 // Получение данных для тренировки конкретного текста
 router.get('/text/:id', authenticateToken, (req, res) => {
     try {
@@ -289,6 +384,104 @@ router.get('/fragment/:fragmentId/history', authenticateToken, (req, res) => {
         });
     } catch (error) {
         console.error('Ошибка получения истории ввода фрагмента:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    }
+});
+
+// Получение данных для графика суммарного Манхеттенского расстояния по всем тренировкам текста
+router.get('/text/:textId/distance-chart', authenticateToken, (req, res) => {
+    try {
+        const textId = req.params.textId;
+        const userId = req.user.id;
+
+        // Проверяем доступ к тексту
+        req.db.getTextById(textId, (err, text) => {
+            if (err) {
+                console.error('Ошибка получения текста:', err);
+                return res.status(500).json({ error: 'Ошибка получения текста' });
+            }
+
+            if (!text || text.user_id !== userId) {
+                return res.status(403).json({ error: 'Нет доступа к этому тексту' });
+            }
+
+            // Получаем все фрагменты текста
+            req.db.getFragmentsByTextId(textId, (err, fragments) => {
+                if (err) {
+                    console.error('Ошибка получения фрагментов:', err);
+                    return res.status(500).json({ error: 'Ошибка получения фрагментов' });
+                }
+
+                // Получаем все тренировки с их фрагментами
+                req.db.getTrainingSessionsWithFragmentInputsByTextId(userId, textId, (err, sessionData) => {
+                    if (err) {
+                        console.error('Ошибка получения данных тренировок:', err);
+                        return res.status(500).json({ error: 'Ошибка получения данных тренировок' });
+                    }
+
+                    // Группируем данные по сессиям
+                    const sessionsMap = new Map();
+                    sessionData.forEach(row => {
+                        if (!sessionsMap.has(row.session_id)) {
+                            sessionsMap.set(row.session_id, {
+                                sessionId: row.session_id,
+                                createdAt: row.session_created_at,
+                                durationSeconds: row.duration_seconds,
+                                fragmentInputs: []
+                            });
+                        }
+                        // Добавляем фрагмент только если он был введен
+                        if (row.fragment_id && row.user_input !== null && row.user_input !== undefined) {
+                            sessionsMap.get(row.session_id).fragmentInputs.push({
+                                fragmentId: row.fragment_id,
+                                fragmentContent: row.fragment_content,
+                                fragmentOrder: row.fragment_order,
+                                userInput: row.user_input
+                            });
+                        }
+                    });
+
+                    // Вычисляем суммарное расстояние для каждой тренировки
+                    const chartData = [];
+                    sessionsMap.forEach((session, sessionId) => {
+                        let totalDistance = 0;
+
+                        // Для каждого фрагмента текста
+                        fragments.forEach(fragment => {
+                            // Ищем введенный текст для этого фрагмента в данной тренировке
+                            const input = session.fragmentInputs.find(
+                                inp => inp.fragmentId === fragment.id
+                            );
+
+                            if (input) {
+                                // Если фрагмент был введен, вычисляем расстояние
+                                const distance = manhattanDistance(fragment.content, input.userInput);
+                                totalDistance += distance;
+                            } else {
+                                // Если фрагмент не был записан, расстояние = 0
+                                totalDistance += 0;
+                            }
+                        });
+
+                        chartData.push({
+                            sessionId: session.sessionId,
+                            createdAt: session.createdAt,
+                            totalDistance: totalDistance
+                        });
+                    });
+
+                    // Сортируем по времени создания
+                    chartData.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+                    res.json({
+                        textId: textId,
+                        data: chartData
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Ошибка получения данных графика:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });

@@ -69,10 +69,16 @@
     color: #2c3e50;
 }
 
+.fragments-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 1rem 0;
+}
+
 .fragments-list {
     display: grid;
     gap: 1rem;
-    margin: 1rem 0;
 }
 
 .fragment-item {
@@ -100,6 +106,29 @@
     color: #666;
     font-size: 0.95rem;
     line-height: 1.5;
+}
+
+/* Контейнер графика расстояний */
+.distance-chart-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    height: 400px;
+}
+
+.distance-chart-container h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.distance-chart-container canvas {
+    max-height: 350px;
 }
 
 /* Просмотр истории */
@@ -365,6 +394,17 @@
     .fragment-selection,
     .history-view {
         width: 100%;
+    }
+
+    .fragments-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .distance-chart-container {
+        position: relative;
+        top: 0;
+        height: 300px;
     }
 
     .history-header {

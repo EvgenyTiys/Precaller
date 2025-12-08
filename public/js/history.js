@@ -5,6 +5,7 @@ let currentText = null;
 let currentFragmentId = null;
 let currentFragment = null;
 let currentFragments = null; // Сохраняем загруженные фрагменты
+let distanceChartInstance = null; // Экземпляр графика расстояний
 
 document.addEventListener('DOMContentLoaded', function() {
     checkAuthentication();
@@ -164,7 +165,7 @@ async function selectText(textId, textTitle) {
 }
 
 // Показать выбор фрагментов
-function showFragmentSelection(fragments, textTitle) {
+async function showFragmentSelection(fragments, textTitle) {
     const textSelection = document.getElementById('textSelection');
     const fragmentSelection = document.getElementById('fragmentSelection');
     const historyView = document.getElementById('historyView');
@@ -203,6 +204,113 @@ function showFragmentSelection(fragments, textTitle) {
         item.appendChild(preview);
         fragmentsList.appendChild(item);
     });
+
+    // Загружаем и отображаем график расстояний
+    await loadAndDisplayDistanceChart();
+}
+
+// Загрузка и отображение графика суммарного Манхеттенского расстояния
+async function loadAndDisplayDistanceChart() {
+    if (!currentTextId) return;
+
+    try {
+        if (!window.app) {
+            throw new Error('Приложение не загружено. Перезагрузите страницу.');
+        }
+
+        // Уничтожаем предыдущий график, если он существует
+        if (distanceChartInstance) {
+            distanceChartInstance.destroy();
+            distanceChartInstance = null;
+        }
+
+        // Загружаем данные графика
+        const response = await window.app.apiRequest(`/api/training/text/${currentTextId}/distance-chart`);
+        const chartData = response.data || [];
+
+        const chartContainer = document.getElementById('distanceChartContainer');
+        const chartCanvas = document.getElementById('distanceChart');
+        
+        if (!chartContainer || !chartCanvas) return;
+
+        if (chartData.length === 0) {
+            chartContainer.innerHTML = '<p>Нет данных для отображения графика</p>';
+            return;
+        }
+
+        // Подготавливаем данные для графика
+        const labels = chartData.map(item => new Date(item.createdAt));
+        const distances = chartData.map(item => item.totalDistance);
+
+        // Создаем график
+        const ctx = chartCanvas.getContext('2d');
+        distanceChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Суммарное Манхеттенское расстояние',
+                    data: distances,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            title: function(context) {
+                                return new Date(context[0].label).toLocaleString('ru-RU');
+                            },
+                            label: function(context) {
+                                return `Расстояние: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd.MM.yyyy'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Дата тренировки'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Суммарное расстояние'
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Ошибка загрузки графика расстояний:', error);
+        const chartContainer = document.getElementById('distanceChartContainer');
+        if (chartContainer) {
+            chartContainer.innerHTML = '<p>Ошибка загрузки данных графика</p>';
+        }
+    }
 }
 
 // Выбор фрагмента
@@ -379,6 +487,12 @@ function showTextSelection() {
     if (textSelection) textSelection.style.display = 'block';
     if (fragmentSelection) fragmentSelection.style.display = 'none';
     if (historyView) historyView.style.display = 'none';
+
+    // Уничтожаем график при возврате к выбору текстов
+    if (distanceChartInstance) {
+        distanceChartInstance.destroy();
+        distanceChartInstance = null;
+    }
 
     currentTextId = null;
     currentText = null;
